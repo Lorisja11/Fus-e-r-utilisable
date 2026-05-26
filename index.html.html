@@ -1,0 +1,3227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReEntry — Média indépendant sur les fusées réutilisables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --white: #FFFFFF;
+    --black: #0A0A0F;
+    --blue: #0066FF;
+    --orange: #FF4D00;
+    --slate: #1A1A2E;
+    --violet: #6C35DE;
+    --gray-light: #F4F4F6;
+    --gray-mid: #E2E2E8;
+    --gray-text: #6B6B80;
+    --font-title: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--black);
+    background: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  #site-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: var(--slate);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 60px;
+  }
+
+  /* ─── LOGO ─── */
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .logo-svg-wrap { width: 36px; height: 36px; flex-shrink: 0; }
+
+  .logo-text-svg { height: 28px; width: auto; }
+
+  /* ─── NAV ─── */
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.72);
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .nav-btn.active {
+    color: #fff;
+    background: rgba(0,102,255,0.25);
+    border-bottom: 2px solid var(--blue);
+  }
+
+  /* Search */
+  .header-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 13px;
+    width: 200px;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .search-input::placeholder { color: rgba(255,255,255,0.35); }
+  .search-input:focus {
+    background: rgba(255,255,255,0.12);
+    border-color: var(--blue);
+    width: 240px;
+  }
+
+  .admin-btn {
+    background: rgba(108,53,222,0.2);
+    border: 1px solid rgba(108,53,222,0.4);
+    border-radius: 8px;
+    padding: 7px 14px;
+    color: rgba(255,255,255,0.8);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .admin-btn:hover { background: rgba(108,53,222,0.4); color: #fff; }
+
+  /* ─── MAIN ─── */
+  #main-content { margin-top: 60px; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    height: 82vh;
+    min-height: 520px;
+    overflow: hidden;
+    background: var(--slate);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 70% 110%, rgba(0,102,255,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 50% at 80% 50%, rgba(255,77,0,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 100% at 50% 100%, rgba(108,53,222,0.12) 0%, transparent 70%),
+      linear-gradient(175deg, #0A0A1F 0%, #0D1635 40%, #111128 100%);
+    animation: hero-pulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes hero-pulse {
+    0% { opacity: 1; }
+    100% { opacity: 0.85; }
+  }
+
+  /* Plume / exhaust animation */
+  .hero-plume {
+    position: absolute;
+    bottom: -20px;
+    left: 55%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 400px;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  .plume-inner {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 350px;
+    background: linear-gradient(to top, rgba(255,120,0,0.9), rgba(255,200,50,0.5), rgba(0,102,255,0.2), transparent);
+    border-radius: 50% 50% 0 0;
+    filter: blur(20px);
+    animation: plume-flicker 2s ease-in-out infinite alternate;
+  }
+
+  .plume-outer {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 280px;
+    background: radial-gradient(ellipse at bottom, rgba(255,77,0,0.5), transparent 70%);
+    filter: blur(30px);
+    animation: plume-flicker 2.3s ease-in-out infinite alternate-reverse;
+  }
+
+  @keyframes plume-flicker {
+    0% { transform: translateX(-50%) scaleX(1); opacity: 0.8; }
+    100% { transform: translateX(-50%) scaleX(1.15); opacity: 1; }
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 56px;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+
+  .hero-title {
+    font-family: var(--font-title);
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.08;
+    max-width: 800px;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-lead {
+    font-size: 17px;
+    color: rgba(255,255,255,0.7);
+    max-width: 600px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    font-weight: 300;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--blue);
+    color: #fff;
+    font-family: var(--font-title);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: fit-content;
+    text-decoration: none;
+  }
+  .hero-cta:hover { background: #0055DD; transform: translateY(-1px); }
+
+  /* ─── BREAKING TICKER ─── */
+  .ticker-wrap {
+    background: var(--blue);
+    padding: 10px 0;
+    overflow: hidden;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 0;
+    animation: ticker-scroll 40s linear infinite;
+    width: max-content;
+  }
+
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #fff;
+    padding: 0 40px;
+    white-space: nowrap;
+  }
+
+  .ticker-item::after {
+    content: '//';
+    color: rgba(255,255,255,0.4);
+    margin-left: 40px;
+  }
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ─── LAYOUT GRID ─── */
+  .section-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .section-heading {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray-text);
+    padding: 28px 0 16px;
+    border-top: 2px solid var(--black);
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gray-mid);
+    margin-left: 8px;
+  }
+
+  /* ─── NEWS GRID ─── */
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1px;
+    background: var(--gray-mid);
+    margin-top: 0;
+    border: 1px solid var(--gray-mid);
+  }
+
+  /* Article card */
+  .article-card {
+    background: var(--white);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .article-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+    background: var(--blue);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  .article-card:hover { background: #FAFAFE; box-shadow: 0 -4px 20px rgba(0,102,255,0.07); }
+  .article-card:hover::after { transform: scaleX(1); }
+
+  /* Luminous arc on hover for featured cards */
+  .article-card.featured::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -100%;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+    transition: left 0.6s ease;
+  }
+  .article-card.featured:hover::before { left: 140%; }
+
+  /* Particle dots for featured */
+  .article-card.featured .card-particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--blue);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .article-card.featured:hover .card-particle { animation: particle-float 1.5s ease-out forwards; }
+  @keyframes particle-float {
+    0% { opacity: 0.8; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+  }
+
+  .card-col-8 { grid-column: span 8; }
+  .card-col-6 { grid-column: span 6; }
+  .card-col-4 { grid-column: span 4; }
+  .card-col-3 { grid-column: span 3; }
+  .card-col-12 { grid-column: span 12; }
+
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+
+  .tag-techno { background: rgba(0,102,255,0.1); color: var(--blue); }
+  .tag-innovation { background: rgba(108,53,222,0.1); color: var(--violet); }
+  .tag-data { background: rgba(0,102,255,0.08); color: #0088AA; }
+  .tag-economie { background: rgba(255,77,0,0.1); color: var(--orange); }
+  .tag-geopolitique { background: rgba(108,53,222,0.1); color: var(--violet); }
+  .tag-env { background: rgba(0,180,100,0.1); color: #00A050; }
+  .tag-analyse { background: rgba(0,102,255,0.1); color: var(--blue); }
+  .tag-exploration { background: rgba(255,77,0,0.1); color: var(--orange); }
+  .tag-rd { background: rgba(108,53,222,0.1); color: var(--violet); }
+  .tag-fond { background: rgba(26,26,46,0.1); color: var(--slate); }
+
+  .card-title {
+    font-family: var(--font-title);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+    color: var(--black);
+  }
+
+  .card-title.large { font-size: clamp(20px, 2.5vw, 30px); }
+  .card-title.medium { font-size: clamp(16px, 1.8vw, 22px); }
+  .card-title.small { font-size: clamp(14px, 1.4vw, 18px); }
+
+  .card-lead {
+    font-size: 14px;
+    color: var(--gray-text);
+    line-height: 1.6;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+
+  .card-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #AAA;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .card-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    margin-bottom: 16px;
+    border-radius: 2px;
+    background: linear-gradient(135deg, var(--slate) 0%, #0D2050 50%, #1A1A2E 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-img-placeholder {
+    width: 100%;
+    aspect-ratio: 16/9;
+    margin-bottom: 16px;
+    border-radius: 2px;
+    background: linear-gradient(135deg, #0D1635 0%, #0A2060 50%, #111020 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-img-placeholder svg { width: 48px; height: 48px; opacity: 0.3; }
+
+  /* Stars in placeholder */
+  .card-img-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+    background-size: 80px 80px, 120px 120px, 60px 60px;
+    background-position: 10px 10px, 30px 30px, 50px 5px;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .grid-with-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 32px;
+    margin-top: 32px;
+    align-items: start;
+  }
+
+  /* ─── SIDEBAR BLOBS ─── */
+  .sidebar-blob-wrap {
+    position: relative;
+    height: 180px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0A0A1F 0%, #0D1635 100%);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-blob-label {
+    position: absolute;
+    bottom: 12px; left: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    z-index: 2;
+  }
+
+  .blob-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* ─── ACTEURS CARDS ─── */
+  .acteur-card {
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.22s;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .acteur-card:hover {
+    border-color: var(--blue);
+    box-shadow: 0 4px 24px rgba(0,102,255,0.1);
+    transform: translateY(-2px);
+  }
+
+  .acteur-icon {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .acteur-title {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .acteur-desc {
+    font-size: 13px;
+    color: var(--gray-text);
+    line-height: 1.55;
+  }
+
+  /* ─── PODCAST ─── */
+  .podcast-card {
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s;
+  }
+
+  .podcast-card:hover {
+    border-color: rgba(0,102,255,0.3);
+    box-shadow: 0 4px 20px rgba(0,102,255,0.08);
+  }
+
+  .podcast-ep-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--blue);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .podcast-title {
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .podcast-desc {
+    font-size: 14px;
+    color: var(--gray-text);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .podcast-duration {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #AAA;
+    margin-bottom: 16px;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--gray-mid);
+    border-radius: 12px;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.22s;
+    background: var(--gray-light);
+    overflow: hidden;
+    margin-top: 14px;
+  }
+  .upload-zone:hover {
+    border-color: var(--blue);
+    background: rgba(0,102,255,0.04);
+  }
+  .upload-zone:hover .uz-icon svg { stroke: var(--blue); }
+  .upload-zone:hover .uz-icon { background: rgba(0,102,255,0.1); }
+
+  .upload-zone.has-file {
+    border-color: var(--blue);
+    border-style: solid;
+    background: rgba(0,102,255,0.04);
+  }
+
+  .upload-zone-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 22px 20px;
+  }
+
+  .uz-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    background: rgba(0,102,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+  .uz-icon svg { stroke: var(--gray-text); transition: stroke 0.2s; }
+
+  .upload-zone-text strong {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .uz-formats {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    letter-spacing: 0.06em;
+    background: rgba(0,102,255,0.08);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .uz-note {
+    font-size: 11px;
+    color: #AAA;
+    font-family: var(--font-mono);
+  }
+
+  audio.podcast-player {
+    width: 100%;
+    margin-top: 12px;
+    border-radius: 6px;
+    outline: none;
+  }
+
+  /* ─── FOOTER ─── */
+  #site-footer {
+    background: var(--slate);
+    color: rgba(255,255,255,0.6);
+    padding: 60px 28px 32px;
+    margin-top: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .footer-planet-wrap {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .footer-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr 1fr 1fr;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-brand-name {
+    font-family: var(--font-title);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .footer-tagline {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .footer-col-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+  }
+
+  .footer-links { list-style: none; }
+
+  .footer-links li { margin-bottom: 9px; }
+
+  .footer-links a {
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s;
+    cursor: pointer;
+  }
+  .footer-links a:hover { color: #fff; }
+
+  .footer-bottom {
+    max-width: 1180px;
+    margin: 40px auto 0;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── ARTICLE VIEW ─── */
+  .article-full {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 28px 80px;
+  }
+
+  .article-full-tag { margin-bottom: 16px; }
+
+  .article-full-title {
+    font-family: var(--font-title);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .article-full-lead {
+    font-size: 18px;
+    line-height: 1.65;
+    color: #444;
+    font-weight: 400;
+    border-left: 3px solid var(--blue);
+    padding-left: 20px;
+    margin-bottom: 32px;
+  }
+
+  .article-full-body {
+    font-size: 16px;
+    line-height: 1.78;
+    color: #222;
+  }
+
+  .article-full-body p { margin-bottom: 22px; }
+
+  .article-full-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #AAA;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--gray-mid);
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--blue);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 32px;
+    text-decoration: none;
+    transition: gap 0.2s;
+  }
+  .back-btn:hover { gap: 12px; }
+
+  /* ─── ONGLET PAGES ─── */
+  .onglet-header {
+    background: var(--gray-light);
+    border-bottom: 1px solid var(--gray-mid);
+    padding: 48px 28px 32px;
+  }
+
+  .onglet-header-inner { max-width: 1180px; margin: 0 auto; }
+
+  .onglet-title {
+    font-family: var(--font-title);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .onglet-desc {
+    font-size: 15px;
+    color: var(--gray-text);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  .articles-list {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .article-list-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--gray-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+    align-items: start;
+  }
+  .article-list-item:hover .article-list-title { color: var(--blue); }
+
+  .article-list-img {
+    border-radius: 6px;
+    aspect-ratio: 3/2;
+    background: linear-gradient(135deg, #0D1635, #0A2060);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .article-list-title {
+    font-family: var(--font-title);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    transition: color 0.2s;
+    letter-spacing: -0.01em;
+  }
+
+  .article-list-lead {
+    font-size: 14px;
+    color: var(--gray-text);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  /* ─── ACTEURS PAGE ─── */
+  .acteurs-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .acteur-full {
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 12px;
+    padding: 32px;
+    cursor: pointer;
+    transition: all 0.22s;
+  }
+  .acteur-full:hover { border-color: var(--blue); box-shadow: 0 4px 24px rgba(0,102,255,0.08); transform: translateY(-1px); }
+
+  .acteur-full-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .acteur-full-icon {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .acteur-full-name {
+    font-family: var(--font-title);
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .acteur-full-founded {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--gray-text);
+  }
+
+  .acteur-full-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .acteur-stats {
+    display: flex;
+    gap: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-mid);
+    flex-wrap: wrap;
+  }
+
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+
+  .stat-val {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--gray-text);
+    font-family: var(--font-mono);
+  }
+
+  /* ─── PODCASTS PAGE ─── */
+  .podcasts-section {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* ─── À PROPOS ─── */
+  .apropos-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 28px 80px;
+  }
+
+  .apropos-title {
+    font-family: var(--font-title);
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  .apropos-subtitle {
+    font-size: 16px;
+    color: var(--gray-text);
+    margin-bottom: 40px;
+    font-weight: 300;
+  }
+
+  .apropos-body {
+    font-size: 16px;
+    line-height: 1.78;
+    color: #222;
+  }
+
+  .apropos-body p { margin-bottom: 22px; }
+
+  .apropos-tag {
+    display: inline-flex;
+    background: rgba(108,53,222,0.1);
+    color: var(--violet);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 32px;
+  }
+
+  .team-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .team-card {
+    background: var(--gray-light);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .team-avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--violet));
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-title);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .team-name {
+    font-family: var(--font-title);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .team-role {
+    font-size: 12px;
+    color: var(--gray-text);
+    font-family: var(--font-mono);
+  }
+
+  /* ─── ADMIN MODAL ─── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-backdrop.open { display: flex; }
+
+  .modal-box {
+    background: var(--white);
+    border-radius: 16px;
+    width: 480px;
+    max-width: 94vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+  }
+
+  .modal-header {
+    padding: 24px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .modal-title {
+    font-family: var(--font-title);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .modal-close {
+    background: var(--gray-light);
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black);
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--gray-mid); }
+
+  .modal-body { padding: 0 28px 28px; }
+
+  .modal-field { margin-bottom: 16px; }
+
+  .modal-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-text);
+    margin-bottom: 6px;
+  }
+
+  .modal-input {
+    width: 100%;
+    border: 1px solid var(--gray-mid);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--black);
+  }
+  .modal-input:focus { border-color: var(--blue); }
+
+  .modal-btn {
+    width: 100%;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .modal-btn:hover { background: #0055DD; }
+
+  .modal-error {
+    background: rgba(255,77,0,0.08);
+    border: 1px solid rgba(255,77,0,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--orange);
+    margin-bottom: 12px;
+    display: none;
+  }
+  .modal-error.show { display: block; }
+
+  /* Admin panel */
+  .admin-panel {
+    background: var(--gray-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .admin-section-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-text);
+    margin-bottom: 12px;
+  }
+
+  .admin-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .admin-small-btn {
+    background: var(--slate);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .admin-small-btn:hover { background: var(--blue); }
+
+  .admin-success {
+    background: rgba(0,180,100,0.08);
+    border: 1px solid rgba(0,180,100,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #00A050;
+    font-family: var(--font-mono);
+    display: none;
+  }
+  .admin-success.show { display: block; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .card-col-8 { grid-column: span 12; }
+    .card-col-6 { grid-column: span 12; }
+    .card-col-4 { grid-column: span 12; }
+    .card-col-3 { grid-column: span 6; }
+    .grid-with-sidebar { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .footer-planet-wrap { display: none; }
+    .podcasts-section { grid-template-columns: 1fr; }
+    .team-cards { grid-template-columns: 1fr; }
+    .article-list-item { grid-template-columns: 1fr; }
+    .article-list-img { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .header-nav { display: none; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .card-col-3 { grid-column: span 12; }
+    .hero-title { font-size: 26px; }
+    .header-search { gap: 6px; }
+    .search-input { width: 120px; }
+  }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── SCROLLABLE TICKER STRIP ─── */
+  .une-strip {
+    background: var(--gray-light);
+    border-bottom: 1px solid var(--gray-mid);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .une-strip::-webkit-scrollbar { display: none; }
+
+  .une-strip-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .une-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-right: 1px solid var(--gray-mid);
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .une-item:first-child { padding-left: 0; }
+  .une-item:hover { background: rgba(0,102,255,0.04); }
+
+  .une-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+  }
+
+  .une-text {
+    font-family: var(--font-title);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--black);
+  }
+
+  /* Data callout */
+  .data-callout {
+    background: var(--black);
+    color: #fff;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .data-callout-val {
+    font-family: var(--font-mono);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .data-callout-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* Reading time badge */
+  .read-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gray-text);
+  }
+
+  /* ─── VIDÉOS ─── */
+  .video-section-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 28px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  @media (max-width: 860px) {
+    .video-section-wrap { grid-template-columns: 1fr; }
+  }
+
+  .video-card {
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: box-shadow 0.22s, border-color 0.22s;
+  }
+  .video-card:hover {
+    border-color: rgba(0,102,255,0.3);
+    box-shadow: 0 6px 32px rgba(0,102,255,0.09);
+  }
+
+  .video-card-header {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--gray-mid);
+  }
+
+  .video-ep-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+
+  .video-card-title {
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 6px;
+    color: var(--black);
+    min-height: 22px;
+  }
+
+  .video-card-desc {
+    font-size: 13px;
+    color: var(--gray-text);
+    line-height: 1.55;
+    min-height: 18px;
+  }
+
+  .video-embed-wrap {
+    position: relative;
+    width: 100%;
+    background: #05050F;
+  }
+
+  /* ── État vide ── */
+  .video-empty {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #07071A 0%, #0D1240 50%, #07071A 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .video-empty::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px);
+    background-size: 90px 90px, 140px 140px;
+    background-position: 15px 15px, 45px 45px;
+  }
+
+  .video-empty::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 40% at 50% 60%, rgba(0,102,255,0.07), transparent);
+    animation: vp-pulse 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes vp-pulse {
+    from { opacity: 0.5; }
+    to   { opacity: 1;   }
+  }
+
+  .vp-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    padding: 0 24px;
+  }
+
+  .vp-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.04em;
+  }
+
+  .vp-sublabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.28);
+  }
+
+  /* ── Miniature ── */
+  .video-thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+
+  .video-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease, filter 0.35s ease;
+    filter: brightness(0.82);
+  }
+
+  .video-thumb-wrap:hover .video-thumb-img {
+    transform: scale(1.03);
+    filter: brightness(0.6);
+  }
+
+  /* Overlay play button */
+  .thumb-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: opacity 0.25s;
+  }
+
+  .thumb-play-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.72);
+    border: 2px solid rgba(255,255,255,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.22s, transform 0.22s, border-color 0.22s;
+    backdrop-filter: blur(4px);
+  }
+
+  .video-thumb-wrap:hover .thumb-play-btn {
+    background: var(--blue);
+    border-color: var(--blue);
+    transform: scale(1.1);
+  }
+
+  .thumb-play-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+
+  .video-thumb-wrap:hover .thumb-play-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .video-iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: block;
+    border: none;
+  }
+
+  .video-controls {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--gray-light);
+    border-top: 1px solid var(--gray-mid);
+  }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .url-input {
+    flex: 1;
+    border: 1.5px solid var(--gray-mid);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--black);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .url-input:focus { border-color: var(--blue); }
+  .url-input::placeholder { color: #BBB; }
+
+  .url-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: var(--font-title);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s, transform 0.15s;
+    flex-shrink: 0;
+  }
+  .url-btn:hover { background: #0052CC; transform: translateY(-1px); }
+  .url-btn:active { transform: translateY(0); }
+
+  .edit-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .meta-input {
+    border: 1.5px solid var(--gray-mid);
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--black);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .meta-input:focus { border-color: var(--violet); }
+  .meta-input::placeholder { color: #CCC; }
+
+  .video-feedback {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    min-height: 16px;
+    transition: color 0.2s;
+  }
+  .video-feedback.ok { color: #00A050; }
+  .video-feedback.err { color: var(--orange); }
+
+  /* ─── PODCAST URL INPUT ─── */
+  .pod-url-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  .pod-url-input {
+    flex: 1;
+    border: 1.5px solid var(--gray-mid);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--black);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .pod-url-input:focus { border-color: var(--blue); }
+  .pod-url-input::placeholder { color: #CCC; }
+
+  .pod-url-btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: var(--font-title);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s;
+    flex-shrink: 0;
+  }
+  .pod-url-btn:hover { background: #0052CC; }
+
+  .pod-or-divider {
+    text-align: center;
+    margin: 10px 0;
+    position: relative;
+    color: var(--gray-text);
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+  .pod-or-divider::before, .pod-or-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 20px);
+    height: 1px;
+    background: var(--gray-mid);
+  }
+  .pod-or-divider::before { left: 0; }
+  .pod-or-divider::after { right: 0; }
+
+  .pod-feedback {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-top: 8px;
+    min-height: 14px;
+  }
+  .pod-feedback.ok { color: #00A050; }
+  .pod-feedback.err { color: var(--orange); }
+
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header id="site-header">
+  <div class="header-top">
+    <!-- Logo -->
+    <a class="logo-wrap" onclick="showTab('accueil')" style="cursor:pointer; text-decoration:none;">
+      <div class="logo-svg-wrap">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="36" rx="8" fill="#0066FF"/>
+          <path d="M18 6 L22 26 L18 22 L14 26 Z" fill="white" opacity="0.9"/>
+          <ellipse cx="18" cy="26" rx="6" ry="3" fill="#FF4D00" opacity="0.8"/>
+          <path d="M12 10 Q18 4 24 10" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" fill="none"/>
+        </svg>
+      </div>
+      <svg class="logo-text-svg" viewBox="0 0 130 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- "Re" plain -->
+        <text x="0" y="22" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="22" fill="#FFFFFF">Re</text>
+        <!-- "Entry" with arc on E -->
+        <text x="30" y="22" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="22" fill="#FFFFFF">ntry</text>
+        <!-- E formed by arc -->
+        <g>
+          <!-- Vertical bar of E -->
+          <rect x="30" y="3" width="2.5" height="19" fill="#FFFFFF"/>
+          <!-- Top bar -->
+          <rect x="30" y="3" width="13" height="2.5" fill="#FFFFFF"/>
+          <!-- Mid bar -->
+          <rect x="30" y="12" width="9" height="2.5" fill="#FFFFFF"/>
+          <!-- Bottom bar -->
+          <rect x="30" y="19.5" width="13" height="2.5" fill="#FFFFFF"/>
+        </g>
+        <!-- Arc trajectory line -->
+        <path d="M2 26 Q50 -8 128 16" stroke="url(#arc-grad)" stroke-width="1.5" fill="none" stroke-dasharray="none" opacity="0.85"/>
+        <!-- Small dot at end of arc (booster) -->
+        <circle cx="128" cy="16" r="2.5" fill="#FF4D00"/>
+        <!-- Small dot at start -->
+        <circle cx="2" cy="26" r="1.5" fill="#6C35DE" opacity="0.7"/>
+        <defs>
+          <linearGradient id="arc-grad" x1="0" y1="0" x2="130" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6C35DE"/>
+            <stop offset="60%" stop-color="#0066FF"/>
+            <stop offset="100%" stop-color="#FF4D00"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </a>
+
+    <!-- Nav -->
+    <nav class="header-nav">
+      <button class="nav-btn active" onclick="showTab('accueil')">Accueil</button>
+      <button class="nav-btn" onclick="showTab('technologie')">Technologie</button>
+      <button class="nav-btn" onclick="showTab('enjeux')">Enjeux & Marché</button>
+      <button class="nav-btn" onclick="showTab('podcasts')">Podcasts</button>
+      <button class="nav-btn" onclick="showTab('acteurs')">Acteurs</button>
+      <button class="nav-btn" onclick="showTab('prospective')">Prospective</button>
+      <button class="nav-btn" onclick="showTab('video')">Vidéos</button>
+      <button class="nav-btn" onclick="showTab('apropos')">À propos</button>
+    </nav>
+
+    <!-- Search + Admin -->
+    <div class="header-search">
+      <input class="search-input" type="text" placeholder="Rechercher…" id="search-input">
+      <button class="admin-btn" onclick="openAdmin()">⚙ Admin</button>
+    </div>
+  </div>
+</header>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main id="main-content">
+
+  <!-- ════════════════════════════════════════
+       ACCUEIL
+  ════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-accueil">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-plume">
+        <div class="plume-outer"></div>
+        <div class="plume-inner"></div>
+      </div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="hero-tag">
+          <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+          À la une — Technologie
+        </span>
+        <h1 class="hero-title">Les 4 piliers technologiques<br>de la réutilisation</h1>
+        <p class="hero-lead">La réutilisabilité d'un lanceur spatial ne repose pas sur une seule innovation mais sur la convergence simultanée de quatre technologies critiques.</p>
+        <div class="hero-meta">
+          <span>FONDAMENTAUX</span>
+          <span>·</span>
+          <span>2 min 30</span>
+          <span>·</span>
+          <span>ReEntry</span>
+        </div>
+        <div style="margin-top:24px;">
+          <button class="hero-cta" onclick="openArticle('tech-1')">
+            Lire l'article
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TICKER "À LA UNE" -->
+    <div class="une-strip">
+      <div class="une-strip-inner">
+        <div class="une-item" onclick="openArticle('tech-2')">
+          <span class="une-num">01</span>
+          <span class="une-text">Transpiration cooling : comment le Starship se refroidit de l'intérieur</span>
+        </div>
+        <div class="une-item" onclick="openArticle('marche-1')">
+          <span class="une-num">02</span>
+          <span class="une-text">La révolution des coûts : -95% en 15 ans</span>
+        </div>
+        <div class="une-item" onclick="openArticle('prosp-1')">
+          <span class="une-num">03</span>
+          <span class="une-text">2030-2040 : trois scénarios pour l'accès à l'espace</span>
+        </div>
+        <div class="une-item" onclick="openArticle('marche-2')">
+          <span class="une-num">04</span>
+          <span class="une-text">Souveraineté spatiale : l'Europe peut-elle rattraper son retard ?</span>
+        </div>
+        <div class="une-item" onclick="openArticle('prosp-3')">
+          <span class="une-num">05</span>
+          <span class="une-text">Propulsion nucléaire : la prochaine rupture technologique ?</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS GRID -->
+    <div class="section-wrap">
+      <div class="section-heading">Derniers articles</div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="news-grid">
+
+        <!-- Grande carte (col 8) -->
+        <div class="article-card card-col-8 featured" onclick="openArticle('marche-1')">
+          <div class="card-img-placeholder">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 8 L36 52 L32 46 L28 52 Z" fill="rgba(0,102,255,0.4)"/>
+              <ellipse cx="32" cy="52" rx="10" ry="5" fill="rgba(255,77,0,0.5)"/>
+            </svg>
+          </div>
+          <span class="card-tag tag-economie">Économie</span>
+          <h2 class="card-title large">La révolution des coûts : ce que la réutilisation a changé au marché spatial</h2>
+          <p class="card-lead">De 54 000 dollars par kilo en 2010 à 2 700 dollars en 2026 — une réduction de 95% sans précédent dans l'histoire de l'accès à l'espace.</p>
+          <div class="card-meta">
+            <span class="read-time">⏱ 2 min</span>
+            <span>·</span>
+            <span>Enjeux & Marché</span>
+          </div>
+        </div>
+
+        <!-- 2 petites (col 4) -->
+        <div class="article-card card-col-4" onclick="openArticle('tech-2')">
+          <span class="card-tag tag-innovation">Innovation</span>
+          <h3 class="card-title medium">Transpiration cooling : le Starship se refroidit de l'intérieur</h3>
+          <p class="card-lead">Une technique radicale empruntée aux années 1960 et jamais appliquée à cette échelle.</p>
+          <div class="card-meta"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+
+        <!-- Trois medium (col 4 chacune) -->
+        <div class="article-card card-col-4" onclick="openArticle('tech-3')">
+          <span class="card-tag tag-data">Data</span>
+          <h3 class="card-title medium">Jumeaux numériques et maintenance prédictive des boosters</h3>
+          <p class="card-lead">34 vols pour un même booster. La preuve empirique que la maintenance prédictive fonctionne.</p>
+          <div class="card-meta"><span class="read-time">⏱ 1 min 30</span></div>
+        </div>
+
+        <div class="article-card card-col-4" onclick="openArticle('marche-2')">
+          <span class="card-tag tag-geopolitique">Géopolitique</span>
+          <h3 class="card-title medium">Souveraineté spatiale : l'Europe peut-elle rattraper son retard ?</h3>
+          <p class="card-lead">Après Ariane 6, Prometheus. La fenêtre se ferme progressivement.</p>
+          <div class="card-meta"><span class="read-time">⏱ 2 min</span></div>
+        </div>
+
+        <div class="article-card card-col-4" onclick="openArticle('marche-3')">
+          <span class="card-tag tag-env">Env. spatial</span>
+          <h3 class="card-title medium">Constellations de satellites : quel impact sur l'orbite terrestre ?</h3>
+          <p class="card-lead">100 000 satellites en orbite basse d'ici 2030. Le syndrome de Kessler n'est plus théorique.</p>
+          <div class="card-meta"><span class="read-time">⏱ 1 min 30</span></div>
+        </div>
+
+        <!-- Ligne prospective (3 col + 1 col 3) -->
+        <div class="article-card card-col-6" onclick="openArticle('prosp-1')">
+          <span class="card-tag tag-analyse">Analyse</span>
+          <h3 class="card-title medium">2030-2040 : trois scénarios pour le futur de l'accès à l'espace</h3>
+          <p class="card-lead">L'espace banalisé, la consolidation industrielle ou la rupture nucléaire ? Une prospective méthodique.</p>
+          <div class="card-meta"><span class="read-time">⏱ 2 min</span></div>
+        </div>
+
+        <div class="article-card card-col-3" onclick="openArticle('prosp-2')">
+          <span class="card-tag tag-exploration">Exploration</span>
+          <h3 class="card-title small">Mars : la réutilisation comme condition sine qua non</h3>
+          <div class="card-meta" style="margin-top:8px;"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+
+        <div class="article-card card-col-3" onclick="openArticle('prosp-3')">
+          <span class="card-tag tag-rd">R&D</span>
+          <h3 class="card-title small">Propulsion nucléaire : la prochaine rupture ?</h3>
+          <div class="card-meta" style="margin-top:8px;"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+
+      </div><!-- /news-grid -->
+    </div>
+
+    <!-- PODCASTS INLINE -->
+    <div class="section-wrap">
+      <div class="section-heading">Podcasts</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding-bottom:32px;" class="podcast-home-grid">
+
+        <div class="podcast-card">
+          <div class="podcast-ep-num">Épisode 01</div>
+          <div class="podcast-title">Comment ça marche : les technologies de la réutilisation</div>
+          <div class="podcast-duration">~ 6 min 28</div>
+          <audio id="home-audio-1" class="podcast-player" controls style="display:none"></audio>
+          <div class="upload-zone" id="home-upload-1" onclick="document.getElementById('home-file-1').click()">
+            <div class="upload-zone-text">
+              <div class="uz-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4v14M8 10l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="20" width="20" height="4" rx="2" fill="currentColor" opacity="0.2"/></svg>
+              </div>
+              <strong>Déposer l'épisode</strong>
+              <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+              <span class="uz-note">Stocké sur Supabase — permanent</span>
+            </div>
+          </div>
+          <input type="file" id="home-file-1" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 1)">
+        </div>
+
+        <div class="podcast-card">
+          <div class="podcast-ep-num">Épisode 02</div>
+          <div class="podcast-title">La guerre économique et le futur de l'espace</div>
+          <div class="podcast-duration">~ 8 min 22</div>
+          <audio id="home-audio-2" class="podcast-player" controls style="display:none"></audio>
+          <div class="upload-zone" id="home-upload-2" onclick="document.getElementById('home-file-2').click()">
+            <div class="upload-zone-text">
+              <div class="uz-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4v14M8 10l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="20" width="20" height="4" rx="2" fill="currentColor" opacity="0.2"/></svg>
+              </div>
+              <strong>Déposer l'épisode</strong>
+              <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+              <span class="uz-note">Stocké sur Supabase — permanent</span>
+            </div>
+          </div>
+          <input type="file" id="home-file-2" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 2)">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ACTEURS INLINE -->
+    <div class="section-wrap">
+      <div class="section-heading">Acteurs</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-bottom:48px;">
+
+        <div class="acteur-card" onclick="showTab('acteurs')">
+          <div class="acteur-icon" style="background:linear-gradient(135deg,#0066FF,#0044BB);">SpX</div>
+          <div>
+            <div class="acteur-title">SpaceX</div>
+            <div class="acteur-desc">165 lancements en 2025 · Booster B1067 : 34 vols · Valorisation 350 Md$</div>
+          </div>
+        </div>
+
+        <div class="acteur-card" onclick="showTab('acteurs')">
+          <div class="acteur-icon" style="background:linear-gradient(135deg,#FF4D00,#CC3300);">BO</div>
+          <div>
+            <div class="acteur-title">Blue Origin</div>
+            <div class="acteur-desc">New Glenn · 45 t en LEO · Contrat NSSL 2,3 Md$</div>
+          </div>
+        </div>
+
+        <div class="acteur-card" onclick="showTab('acteurs')">
+          <div class="acteur-icon" style="background:linear-gradient(135deg,#6C35DE,#4A1FA0);">RL</div>
+          <div>
+            <div class="acteur-title">RocketLab</div>
+            <div class="acteur-desc">Electron réutilisable · Neutron en développement · Leader petits sat.</div>
+          </div>
+        </div>
+
+        <div class="acteur-card" onclick="showTab('acteurs')">
+          <div class="acteur-icon" style="background:linear-gradient(135deg,#1A1A2E,#333366);">AG</div>
+          <div>
+            <div class="acteur-title">ArianeGroup / ESA</div>
+            <div class="acteur-desc">Ariane 6 · Moteur Prometheus · Réutilisation post-2030</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /panel-accueil -->
+
+  <!-- ════════════════════════════════════════
+       TECHNOLOGIE
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-technologie">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Technologie</div>
+        <div class="onglet-desc">Propulsion réallumable, protection thermique, guidage autonome et matériaux avancés — les quatre piliers de la révolution réutilisable décryptés.</div>
+      </div>
+    </div>
+    <div class="articles-list">
+      <div class="article-list-item reveal" onclick="openArticle('tech-1')">
+        <div class="article-list-img">
+          <div style="inset:0;position:absolute;display:flex;align-items:center;justify-content:center;">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4L23 32L20 28L17 32Z" fill="rgba(0,102,255,0.5)"/><ellipse cx="20" cy="32" rx="7" ry="3.5" fill="rgba(255,77,0,0.6)"/></svg>
+          </div>
+        </div>
+        <div>
+          <span class="card-tag tag-fond">Fondamentaux</span>
+          <div class="article-list-title">Les 4 piliers technologiques de la réutilisation</div>
+          <div class="article-list-lead">La réutilisabilité ne repose pas sur une seule innovation mais sur la convergence simultanée de quatre technologies critiques. Supprimer l'une d'elles rend l'atterrissage propulsif impossible.</div>
+          <div class="card-meta"><span class="read-time">⏱ 2 min 30</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('tech-2')">
+        <div class="article-list-img">
+          <div style="inset:0;position:absolute;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(255,150,0,0.3),transparent 70%);">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="rgba(255,100,0,0.5)" stroke-width="2" stroke-dasharray="4 2"/><circle cx="16" cy="16" r="6" fill="rgba(255,77,0,0.4)"/></svg>
+          </div>
+        </div>
+        <div>
+          <span class="card-tag tag-innovation">Innovation</span>
+          <div class="article-list-title">Transpiration cooling : comment le Starship se refroidit de l'intérieur</div>
+          <div class="article-list-lead">SpaceX utilise une technique radicale empruntée aux recherches des années 1960 mais jamais appliquée à cette échelle : injecter du méthane à travers les parois du vaisseau.</div>
+          <div class="card-meta"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('tech-3')">
+        <div class="article-list-img">
+          <div style="inset:0;position:absolute;display:flex;align-items:center;justify-content:center;">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="14" stroke="rgba(0,102,255,0.4)" stroke-width="1.5"/><circle cx="18" cy="18" r="8" stroke="rgba(0,150,255,0.3)" stroke-width="1"/><circle cx="18" cy="18" r="3" fill="rgba(0,102,255,0.5)"/></svg>
+          </div>
+        </div>
+        <div>
+          <span class="card-tag tag-data">Data</span>
+          <div class="article-list-title">Jumeaux numériques et Big Data : la maintenance prédictive des boosters</div>
+          <div class="article-list-lead">Des milliers de capteurs, un jumeau numérique, et un booster qui a volé 34 fois. La science derrière les intervalles de maintenance optimisés.</div>
+          <div class="card-meta"><span class="read-time">⏱ 1 min 30</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       ENJEUX & MARCHÉ
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-enjeux">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Enjeux & Marché</div>
+        <div class="onglet-desc">Économie, géopolitique, environnement orbital — les conséquences profondes de la révolution réutilisable sur le marché spatial mondial.</div>
+      </div>
+    </div>
+    <div class="articles-list">
+      <div class="article-list-item reveal" onclick="openArticle('marche-1')">
+        <div class="article-list-img" style="background:linear-gradient(135deg,#0A1A05,#0A3010);"></div>
+        <div>
+          <span class="card-tag tag-economie">Économie</span>
+          <div class="article-list-title">La révolution des coûts : ce que la réutilisation a changé au marché spatial</div>
+          <div class="article-list-lead">De 54 000 dollars le kilo en 2010 à 2 700 dollars en 2026. Une baisse de 95% qui a bouleversé les équilibres du secteur et rendu viable ce qui semblait impossible.</div>
+          <div class="card-meta"><span class="read-time">⏱ 2 min</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('marche-2')">
+        <div class="article-list-img" style="background:linear-gradient(135deg,#15051A,#250830);"></div>
+        <div>
+          <span class="card-tag tag-geopolitique">Géopolitique</span>
+          <div class="article-list-title">Souveraineté spatiale : l'Europe peut-elle rattraper son retard ?</div>
+          <div class="article-list-lead">Après la retraite d'Ariane 5 et les délais d'Ariane 6, l'Europe a dépend d'acteurs privés étrangers pour accéder à l'espace. La réponse s'appelle Prometheus.</div>
+          <div class="card-meta"><span class="read-time">⏱ 2 min</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('marche-3')">
+        <div class="article-list-img" style="background:linear-gradient(135deg,#001A10,#003020);"></div>
+        <div>
+          <span class="card-tag tag-env">Env. spatial</span>
+          <div class="article-list-title">Constellations de satellites : quel impact sur l'orbite terrestre ?</div>
+          <div class="article-list-lead">La réutilisation a rendu économiquement viable ce que personne ne finançait. 100 000 satellites en LEO d'ici 2030. Le syndrome de Kessler reprend de l'actualité.</div>
+          <div class="card-meta"><span class="read-time">⏱ 1 min 30</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PODCASTS
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-podcasts">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Podcasts</div>
+        <div class="onglet-desc">Déposez vos fichiers — MP4, MP3, WAV acceptés. Stockés sur Supabase, accessibles pour tous les visiteurs à chaque visite.</div>
+      </div>
+    </div>
+    <div class="podcasts-section">
+
+      <div class="podcast-card">
+        <div class="podcast-ep-num">Épisode 01 · Technologie</div>
+        <div class="podcast-title">Comment ça marche : les technologies de la réutilisation</div>
+        <div class="podcast-desc">Les quatre piliers technologiques de la réutilisation — propulsion réallumable, protection thermique, guidage autonome et matériaux avancés.</div>
+        <div class="podcast-duration">⏱ ~ 6 min 28</div>
+        <audio id="pod-audio-1" class="podcast-player" controls style="display:none"></audio>
+        <div class="upload-zone" id="pod-upload-1" onclick="document.getElementById('pod-file-1').click()">
+          <div class="upload-zone-text">
+            <div class="uz-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4v16M9 11l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="23" width="24" height="5" rx="2.5" fill="currentColor" opacity="0.18"/></svg>
+            </div>
+            <strong>Déposer l'épisode 01</strong>
+            <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+            <span class="uz-note">Fichier stocké sur Supabase — permanent pour tous</span>
+          </div>
+        </div>
+        <input type="file" id="pod-file-1" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 1)">
+        <div class="pod-feedback" id="pod-fb-1"></div>
+      </div>
+
+      <div class="podcast-card">
+        <div class="podcast-ep-num">Épisode 02 · Économie & Prospective</div>
+        <div class="podcast-title">La guerre économique et le futur de l'espace</div>
+        <div class="podcast-desc">Qui domine le marché ? Que reste-t-il à l'Europe ? Et à quoi ressemblera le secteur en 2040 ?</div>
+        <div class="podcast-duration">⏱ ~ 8 min 22</div>
+        <audio id="pod-audio-2" class="podcast-player" controls style="display:none"></audio>
+        <div class="upload-zone" id="pod-upload-2" onclick="document.getElementById('pod-file-2').click()">
+          <div class="upload-zone-text">
+            <div class="uz-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4v16M9 11l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="23" width="24" height="5" rx="2.5" fill="currentColor" opacity="0.18"/></svg>
+            </div>
+            <strong>Déposer l'épisode 02</strong>
+            <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+            <span class="uz-note">Fichier stocké sur Supabase — permanent pour tous</span>
+          </div>
+        </div>
+        <input type="file" id="pod-file-2" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 2)">
+        <div class="pod-feedback" id="pod-fb-2"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       ACTEURS
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-acteurs">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Acteurs</div>
+        <div class="onglet-desc">Les quatre grands acteurs qui façonnent l'avenir des lanceurs réutilisables — des États-Unis à l'Europe, en passant par la Nouvelle-Zélande.</div>
+      </div>
+    </div>
+    <div class="acteurs-grid">
+
+      <div class="acteur-full reveal">
+        <div class="acteur-full-header">
+          <div class="acteur-full-icon" style="background:linear-gradient(135deg,#0066FF,#0044BB);">SpX</div>
+          <div>
+            <div class="acteur-full-name">SpaceX</div>
+            <div class="acteur-full-founded">Fondée en 2002 · Hawthorne, Californie</div>
+          </div>
+        </div>
+        <div class="acteur-full-body">
+          Fondée par Elon Musk, SpaceX est aujourd'hui l'acteur dominant du marché mondial des lancements. Le Falcon 9, son lanceur phare, a effectué plus de 638 vols avec un taux de succès de 99,53%. En 2025, SpaceX a réalisé 165 lancements orbitaux — soit plus que tous les autres pays et opérateurs mondiaux réunis. Le record d'un même booster réutilisé atteint 34 vols (booster B1067). Le Starship, plus grand lanceur jamais construit, a réalisé sa première récupération complète des deux étages fin 2024. La valorisation de SpaceX dépasse les 350 milliards de dollars en 2026.
+        </div>
+        <div class="acteur-stats">
+          <div class="stat-item"><div class="stat-val">638+</div><div class="stat-label">vols Falcon 9</div></div>
+          <div class="stat-item"><div class="stat-val">99.53%</div><div class="stat-label">taux de succès</div></div>
+          <div class="stat-item"><div class="stat-val">165</div><div class="stat-label">lancements 2025</div></div>
+          <div class="stat-item"><div class="stat-val">34</div><div class="stat-label">vols / booster (record)</div></div>
+          <div class="stat-item"><div class="stat-val">350 Md$</div><div class="stat-label">valorisation 2026</div></div>
+        </div>
+      </div>
+
+      <div class="acteur-full reveal">
+        <div class="acteur-full-header">
+          <div class="acteur-full-icon" style="background:linear-gradient(135deg,#FF4D00,#CC3300);">BO</div>
+          <div>
+            <div class="acteur-full-name">Blue Origin</div>
+            <div class="acteur-full-founded">Fondée en 2000 · Kent, Washington</div>
+          </div>
+        </div>
+        <div class="acteur-full-body">
+          Fondée par Jeff Bezos, Blue Origin a lancé son premier gros lanceur réutilisable, le New Glenn, en janvier 2025. Le New Glenn peut emporter jusqu'à 45 tonnes en orbite basse, propulsé par 7 moteurs BE-4 au premier étage. Il est conçu pour être réutilisé jusqu'à 25 fois. En novembre 2025, Blue Origin a effectué son deuxième vol avec la mission ESCAPADE vers Mars. Le troisième vol est planifié en avril 2026. Blue Origin a sécurisé 7 missions avec l'US Space Force dans le cadre du programme NSSL Phase 3, pour 2,3 milliards de dollars.
+        </div>
+        <div class="acteur-stats">
+          <div class="stat-item"><div class="stat-val">45 t</div><div class="stat-label">capacité LEO (New Glenn)</div></div>
+          <div class="stat-item"><div class="stat-val">25×</div><div class="stat-label">réutilisations prévues</div></div>
+          <div class="stat-item"><div class="stat-val">7</div><div class="stat-label">missions NSSL Phase 3</div></div>
+          <div class="stat-item"><div class="stat-val">2,3 Md$</div><div class="stat-label">contrat Space Force</div></div>
+        </div>
+      </div>
+
+      <div class="acteur-full reveal">
+        <div class="acteur-full-header">
+          <div class="acteur-full-icon" style="background:linear-gradient(135deg,#6C35DE,#4A1FA0);">RL</div>
+          <div>
+            <div class="acteur-full-name">RocketLab</div>
+            <div class="acteur-full-founded">Fondée en 2006 · Auckland, Nouvelle-Zélande</div>
+          </div>
+        </div>
+        <div class="acteur-full-body">
+          Fondée en 2006 en Nouvelle-Zélande, RocketLab s'est imposée sur le marché des petits satellites avec son Electron, un lanceur partiellement réutilisable via récupération du premier étage par hélicoptère. L'entreprise développe actuellement le Neutron, un lanceur medium-lift réutilisable propulsé au méthane/LOX, capable d'emporter environ 13 tonnes en orbite basse. Le Neutron est conçu dès le départ pour la réutilisation complète du premier étage, avec un objectif de coût par lancement significativement inférieur aux lanceurs comparables.
+        </div>
+        <div class="acteur-stats">
+          <div class="stat-item"><div class="stat-val">13 t</div><div class="stat-label">capacité LEO (Neutron)</div></div>
+          <div class="stat-item"><div class="stat-val">CH4/LOX</div><div class="stat-label">propulsion Neutron</div></div>
+          <div class="stat-item"><div class="stat-val">2006</div><div class="stat-label">fondation</div></div>
+        </div>
+      </div>
+
+      <div class="acteur-full reveal">
+        <div class="acteur-full-header">
+          <div class="acteur-full-icon" style="background:linear-gradient(135deg,#1A1A2E,#333366);">AG</div>
+          <div>
+            <div class="acteur-full-name">ArianeGroup / ESA</div>
+            <div class="acteur-full-founded">Airbus + Safran · Paris, France</div>
+          </div>
+        </div>
+        <div class="acteur-full-body">
+          ArianeGroup est le consortium européen responsable du développement et de la production des lanceurs Ariane. Ariane 6, lancée commercialement en 2024, n'est pas réutilisable dans sa version initiale mais représente une réduction de coûts par rapport à Ariane 5. La réponse européenne à la réutilisation s'articule autour du moteur Prometheus : un démonstrateur de propulsion au méthane/LOX réutilisable, développé avec le soutien de l'ESA. Prometheus doit valider les technologies nécessaires à un futur lanceur européen pleinement réutilisable, dont le développement complet est attendu au-delà de 2030.
+        </div>
+        <div class="acteur-stats">
+          <div class="stat-item"><div class="stat-val">Ariane 6</div><div class="stat-label">lanceur actuel</div></div>
+          <div class="stat-item"><div class="stat-val">Prometheus</div><div class="stat-label">moteur réutilisable (démo)</div></div>
+          <div class="stat-item"><div class="stat-val">2030+</div><div class="stat-label">lanceur réutilisable européen</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PROSPECTIVE
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-prospective">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Prospective</div>
+        <div class="onglet-desc">Scénarios, exploration interplanétaire, propulsion nucléaire — où va le secteur des lanceurs réutilisables d'ici 2040 ?</div>
+      </div>
+    </div>
+    <div class="articles-list">
+      <div class="article-list-item reveal" onclick="openArticle('prosp-1')">
+        <div class="article-list-img" style="background:linear-gradient(135deg,#050520,#0A0A40);"></div>
+        <div>
+          <span class="card-tag tag-analyse">Analyse</span>
+          <div class="article-list-title">2030-2040 : trois scénarios pour le futur de l'accès à l'espace</div>
+          <div class="article-list-lead">L'espace banalisé, la consolidation industrielle ou la rupture technologique nucléaire. Une prospective méthodique à partir des tendances observables aujourd'hui.</div>
+          <div class="card-meta"><span class="read-time">⏱ 2 min</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('prosp-2')">
+        <div class="article-list-img" style="background:radial-gradient(circle at 60% 40%,rgba(255,100,50,0.4),transparent 60%),linear-gradient(135deg,#100805,#200A00);"></div>
+        <div>
+          <span class="card-tag tag-exploration">Exploration</span>
+          <div class="article-list-title">Mars : la réutilisation comme condition sine qua non</div>
+          <div class="article-list-lead">Le Starship n'est pas qu'un lanceur commercial. C'est la première brique d'une architecture qui rend Mars accessible à des milliers de personnes pour des séjours permanents.</div>
+          <div class="card-meta"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+      </div>
+      <div class="article-list-item reveal" onclick="openArticle('prosp-3')">
+        <div class="article-list-img" style="background:radial-gradient(circle at 50% 50%,rgba(0,200,255,0.2),transparent 70%),linear-gradient(135deg,#020A12,#050F20);"></div>
+        <div>
+          <span class="card-tag tag-rd">R&D</span>
+          <div class="article-list-title">Propulsion nucléaire : la prochaine rupture ?</div>
+          <div class="article-list-lead">Depuis les années 1950, les ingénieurs savent que la propulsion nucléaire thermique est supérieure à la propulsion chimique pour le voyage spatial profond. Le programme DRACO de la NASA pourrait changer la donne avant 2030.</div>
+          <div class="card-meta"><span class="read-time">⏱ 1 min</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       VIDÉOS
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-video">
+    <div class="onglet-header">
+      <div class="onglet-header-inner">
+        <div class="onglet-title">Vidéos</div>
+        <div class="onglet-desc">Collez un lien YouTube — public ou non répertorié — et la miniature apparaît immédiatement. Cliquez pour lancer.</div>
+      </div>
+    </div>
+
+    <div class="video-section-wrap">
+
+      <!-- ── VIDÉO 1 ── -->
+      <div class="video-card">
+        <div class="video-card-header">
+          <div class="video-ep-num">Vidéo 01</div>
+          <div class="video-card-title" id="vtitle-1">Titre de la vidéo</div>
+          <div class="video-card-desc" id="vdesc-1">Description de la vidéo. Personnalisez ce texte dans les champs ci-dessous.</div>
+        </div>
+
+        <!-- Embed area -->
+        <div class="video-embed-wrap">
+
+          <!-- État vide -->
+          <div class="video-empty" id="vempty-1">
+            <div class="vp-inner">
+              <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="26" fill="rgba(0,102,255,0.1)"/><circle cx="26" cy="26" r="18" fill="rgba(0,102,255,0.15)"/><path d="M21 18l14 8-14 8V18z" fill="rgba(0,102,255,0.85)"/></svg>
+              <p class="vp-label">Collez un lien YouTube ci-dessous</p>
+              <p class="vp-sublabel">Vidéos publiques et non répertoriées acceptées</p>
+            </div>
+          </div>
+
+          <!-- Miniature (cachée jusqu'à URL valide) -->
+          <div class="video-thumb-wrap" id="vthumb-1" style="display:none;" onclick="embedVideo(1, true)">
+            <img id="vthumb-img-1" class="video-thumb-img" src="" alt="Miniature YouTube">
+            <div class="thumb-play-overlay">
+              <div class="thumb-play-btn">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M10 7l16 7-16 7V7z" fill="white"/></svg>
+              </div>
+              <span class="thumb-play-label">Cliquer pour lancer</span>
+            </div>
+          </div>
+
+          <!-- iFrame -->
+          <iframe id="viframe-1" class="video-iframe" style="display:none;"
+            frameborder="0" allowfullscreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+
+        <div class="video-controls">
+          <div class="url-row">
+            <input class="url-input" id="vurl-1" type="text"
+              placeholder="https://www.youtube.com/watch?v=…"
+              oninput="previewVideo(1)">
+            <button class="url-btn" onclick="embedVideo(1, false)">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Intégrer
+            </button>
+          </div>
+          <div class="edit-row">
+            <input class="meta-input" id="vtitle-input-1" type="text" placeholder="Titre de la vidéo…"
+              oninput="document.getElementById('vtitle-1').textContent=this.value||'Titre de la vidéo'">
+            <input class="meta-input" id="vdesc-input-1" type="text" placeholder="Description courte…"
+              oninput="document.getElementById('vdesc-1').textContent=this.value||'Description de la vidéo.'">
+          </div>
+          <div class="video-feedback" id="vfeedback-1"></div>
+        </div>
+      </div>
+
+      <!-- ── VIDÉO 2 ── -->
+      <div class="video-card">
+        <div class="video-card-header">
+          <div class="video-ep-num">Vidéo 02</div>
+          <div class="video-card-title" id="vtitle-2">Titre de la vidéo</div>
+          <div class="video-card-desc" id="vdesc-2">Description de la vidéo. Personnalisez ce texte dans les champs ci-dessous.</div>
+        </div>
+
+        <div class="video-embed-wrap">
+
+          <div class="video-empty" id="vempty-2">
+            <div class="vp-inner">
+              <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="26" fill="rgba(255,77,0,0.1)"/><circle cx="26" cy="26" r="18" fill="rgba(255,77,0,0.15)"/><path d="M21 18l14 8-14 8V18z" fill="rgba(255,77,0,0.85)"/></svg>
+              <p class="vp-label">Collez un lien YouTube ci-dessous</p>
+              <p class="vp-sublabel">Vidéos publiques et non répertoriées acceptées</p>
+            </div>
+          </div>
+
+          <div class="video-thumb-wrap" id="vthumb-2" style="display:none;" onclick="embedVideo(2, true)">
+            <img id="vthumb-img-2" class="video-thumb-img" src="" alt="Miniature YouTube">
+            <div class="thumb-play-overlay">
+              <div class="thumb-play-btn">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M10 7l16 7-16 7V7z" fill="white"/></svg>
+              </div>
+              <span class="thumb-play-label">Cliquer pour lancer</span>
+            </div>
+          </div>
+
+          <iframe id="viframe-2" class="video-iframe" style="display:none;"
+            frameborder="0" allowfullscreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+
+        <div class="video-controls">
+          <div class="url-row">
+            <input class="url-input" id="vurl-2" type="text"
+              placeholder="https://www.youtube.com/watch?v=…"
+              oninput="previewVideo(2)">
+            <button class="url-btn" onclick="embedVideo(2, false)">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Intégrer
+            </button>
+          </div>
+          <div class="edit-row">
+            <input class="meta-input" id="vtitle-input-2" type="text" placeholder="Titre de la vidéo…"
+              oninput="document.getElementById('vtitle-2').textContent=this.value||'Titre de la vidéo'">
+            <input class="meta-input" id="vdesc-input-2" type="text" placeholder="Description courte…"
+              oninput="document.getElementById('vdesc-2').textContent=this.value||'Description de la vidéo.'">
+          </div>
+          <div class="video-feedback" id="vfeedback-2"></div>
+        </div>
+      </div>
+
+    </div><!-- /video-section-wrap -->
+  </div>
+
+  <!-- ════════════════════════════════════════
+       À PROPOS
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-apropos">
+    <div class="apropos-wrap">
+      <div class="apropos-tag">Projet étudiant · IRIIG Lyon · 2025-2026</div>
+      <h1 class="apropos-title">ReEntry<br>Qui sommes-nous ?</h1>
+      <p class="apropos-subtitle">Un média indépendant sur les fusées réutilisables, porté par trois étudiants passionnés d'espace.</p>
+
+      <div class="apropos-body">
+        <p>ReEntry est un média indépendant dédié à l'actualité et à l'analyse des fusées réutilisables, porté par trois étudiants de l'école IRIIG (Institut de Recherche et d'Innovation en Gestion) à Lyon, passionnés d'espace et de conquête spatiale.</p>
+        <p>Notre objectif est simple : mettre en lumière, de façon rigoureuse et accessible, le travail phénoménal accompli par les ingénieurs, scientifiques et entrepreneurs qui transforment notre rapport à l'espace. Sans prosélytisme, sans parti pris commercial. Nous analysons les technologies, les marchés, les enjeux géopolitiques et les perspectives à long terme avec la même rigueur qu'un média scientifique généraliste.</p>
+        <p>Nos sources sont directement issues des organismes et entreprises concernés : NASA, ESA, SpaceX, Blue Origin, RocketLab, ArianeGroup, CNES, DARPA, ainsi que des médias spécialisés reconnus (Space.com, Ars Technica Space, Science & Vie Ciel & Espace). Lorsque nous produisons une analyse qui nous est propre, elle est clairement identifiée comme telle.</p>
+        <p style="font-family:var(--font-mono);font-size:13px;color:var(--gray-text);padding:16px;background:var(--gray-light);border-radius:8px;border-left:3px solid var(--blue);">ReEntry est un projet étudiant réalisé dans le cadre du master Technologie & Prospective de l'IRIIG — Lyon, 2025-2026.</p>
+      </div>
+
+      <div class="team-cards" style="margin-top:40px;">
+        <div class="team-card">
+          <div class="team-avatar">E</div>
+          <div class="team-name">Étudiant 1</div>
+          <div class="team-role">Rédacteur technologie</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">E</div>
+          <div class="team-name">Étudiant 2</div>
+          <div class="team-role">Rédacteur marché</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">E</div>
+          <div class="team-name">Étudiant 3</div>
+          <div class="team-role">Production & design</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       ARTICLE VIEW (overlay)
+  ════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-article">
+    <div class="article-full" id="article-content">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+
+</main><!-- /main-content -->
+
+<!-- ─── FOOTER ─── -->
+<footer id="site-footer">
+  <!-- Animated planet -->
+  <div class="footer-planet-wrap">
+    <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" style="animation: planet-spin 20s linear infinite; opacity:0.18;">
+      <circle cx="90" cy="90" r="68" stroke="rgba(0,102,255,0.7)" stroke-width="1.5"/>
+      <ellipse cx="90" cy="90" rx="68" ry="22" stroke="rgba(0,102,255,0.4)" stroke-width="1" stroke-dasharray="6 3"/>
+      <circle cx="90" cy="90" r="44" stroke="rgba(108,53,222,0.5)" stroke-width="1"/>
+      <circle cx="90" cy="90" r="22" stroke="rgba(0,102,255,0.3)" stroke-width="1"/>
+      <!-- Satellite dot orbiting -->
+      <circle cx="158" cy="90" r="4" fill="rgba(0,102,255,0.8)">
+        <animateTransform attributeName="transform" type="rotate" from="0 90 90" to="360 90 90" dur="8s" repeatCount="indefinite"/>
+      </circle>
+      <!-- Second satellite -->
+      <circle cx="90" cy="22" r="2.5" fill="rgba(255,77,0,0.7)">
+        <animateTransform attributeName="transform" type="rotate" from="0 90 90" to="-360 90 90" dur="12s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>
+
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">ReEntry</div>
+      <div class="footer-tagline">Média indépendant sur les fusées réutilisables. Rigueur scientifique, accessible à tous.</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6;">Sources : NASA · ESA · SpaceX · Blue Origin<br>RocketLab · ArianeGroup · CNES · DARPA</div>
+    </div>
+    <div>
+      <div class="footer-col-title">Navigation</div>
+      <ul class="footer-links">
+        <li><a onclick="showTab('accueil')">Accueil</a></li>
+        <li><a onclick="showTab('technologie')">Technologie</a></li>
+        <li><a onclick="showTab('enjeux')">Enjeux & Marché</a></li>
+        <li><a onclick="showTab('podcasts')">Podcasts</a></li>
+        <li><a onclick="showTab('acteurs')">Acteurs</a></li>
+        <li><a onclick="showTab('video')">Vidéos</a></li>
+        <li><a onclick="showTab('prospective')">Prospective</a></li>
+        <li><a onclick="showTab('apropos')">À propos</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Thématiques</div>
+      <ul class="footer-links">
+        <li><a onclick="showTab('technologie')">Propulsion réallumable</a></li>
+        <li><a onclick="showTab('technologie')">Protection thermique</a></li>
+        <li><a onclick="showTab('enjeux')">Économie du spatial</a></li>
+        <li><a onclick="showTab('enjeux')">Géopolitique</a></li>
+        <li><a onclick="showTab('prospective')">Exploration Mars</a></li>
+        <li><a onclick="showTab('prospective')">Propulsion nucléaire</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">À propos</div>
+      <ul class="footer-links">
+        <li><a onclick="showTab('apropos')">L'équipe</a></li>
+        <li><a onclick="showTab('apropos')">Notre méthode</a></li>
+        <li><a onclick="showTab('apropos')">IRIIG Lyon</a></li>
+        <li><a onclick="openAdmin()">Espace admin</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 ReEntry — Projet étudiant IRIIG Lyon · Master Technologie & Prospective</span>
+    <span>ReEntry — Média indépendant sur les fusées réutilisables</span>
+  </div>
+</footer>
+
+<!-- ─── ADMIN MODAL ─── -->
+<div class="modal-backdrop" id="admin-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title-text">Connexion Admin</div>
+      <button class="modal-close" onclick="closeAdmin()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body-content">
+      <!-- Login form -->
+      <div id="login-form">
+        <div class="modal-error" id="login-error">Identifiants incorrects. Réessayez.</div>
+        <div class="modal-field">
+          <label class="modal-label">Identifiant</label>
+          <input class="modal-input" type="text" id="admin-user" placeholder="Login" autocomplete="off">
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Mot de passe</label>
+          <input class="modal-input" type="password" id="admin-pass" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="modal-btn" onclick="doLogin()">Se connecter</button>
+      </div>
+
+      <!-- Admin panel (hidden until logged in) -->
+      <div id="admin-panel-content" style="display:none;">
+
+        <div class="admin-panel">
+          <div class="admin-section-title">Podcasts — Déposer des fichiers audio</div>
+          <div class="admin-row">
+            <span style="font-size:13px;">Épisode 1 — Technologies de la réutilisation</span>
+            <button class="admin-small-btn" onclick="document.getElementById('admin-file-1').click()">Parcourir</button>
+          </div>
+          <input type="file" id="admin-file-1" accept="audio/*,video/mp4" style="display:none"
+            onchange="handleAllAudioUpload(this, ['home-audio-1','pod-audio-1'], ['home-upload-1','pod-upload-1'], 'admin-ok-1')">
+          <div class="admin-success" id="admin-ok-1">Épisode 1 chargé avec succès.</div>
+
+          <div class="admin-row" style="margin-top:12px;">
+            <span style="font-size:13px;">Épisode 2 — Guerre économique & futur de l'espace</span>
+            <button class="admin-small-btn" onclick="document.getElementById('admin-file-2').click()">Parcourir</button>
+          </div>
+          <input type="file" id="admin-file-2" accept="audio/*,video/mp4" style="display:none"
+            onchange="handleAllAudioUpload(this, ['home-audio-2','pod-audio-2'], ['home-upload-2','pod-upload-2'], 'admin-ok-2')">
+          <div class="admin-success" id="admin-ok-2">Épisode 2 chargé avec succès.</div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-section-title">Navigation rapide</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="admin-small-btn" onclick="showTab('technologie');closeAdmin()">Technologie</button>
+            <button class="admin-small-btn" onclick="showTab('enjeux');closeAdmin()">Enjeux & Marché</button>
+            <button class="admin-small-btn" onclick="showTab('podcasts');closeAdmin()">Podcasts</button>
+            <button class="admin-small-btn" onclick="showTab('acteurs');closeAdmin()">Acteurs</button>
+            <button class="admin-small-btn" onclick="showTab('prospective');closeAdmin()">Prospective</button>
+            <button class="admin-small-btn" onclick="showTab('apropos');closeAdmin()">À propos</button>
+          </div>
+        </div>
+
+        <button class="modal-btn" style="background:var(--slate);margin-top:4px;" onclick="doLogout()">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ARTICLE DATA ─── -->
+<script>
+const ARTICLES = {
+  'tech-1': {
+    tag: 'FONDAMENTAUX', tagClass: 'tag-fond',
+    title: 'Les 4 piliers technologiques de la réutilisation',
+    readTime: '2 min 30', section: 'Technologie',
+    lead: 'La réutilisabilité d\'un lanceur spatial ne repose pas sur une seule innovation mais sur la convergence simultanée de quatre technologies critiques. Supprimer l\'une d\'elles rend l\'atterrissage propulsif impossible.',
+    body: `
+      <p>Premier pilier : la propulsion réallumable. Pour revenir se poser, un premier étage doit rallumer ses moteurs en plein vol — jusqu'à trois fois pour le Falcon 9. Les 9 moteurs Merlin 1D génèrent 7,6 mégânewtons de poussée et peuvent moduler leur régime de 100% à 40%, permettant un contrôle fin de la vitesse d'atterrissage. Les moteurs Raptor du Starship vont plus loin : fonctionnant au méthane/oxygène liquide en cycle full-flow staged combustion, ils atteignent une impulsion spécifique de 380 secondes dans le vide — un record mondial pour un moteur opérationnel.</p>
+      <p>Deuxième pilier : la protection thermique. La rentrée atmosphérique génère jusqu'à 1 650°C sur les surfaces exposées. Le Falcon 9 rentre moteurs en premier, limitant l'échauffement, avec des grilles de direction en titane pour la stabilité. Le Starship utilise plus de 18 000 tuiles hexagonales en céramique silicique, remplaçables individuellement, résistant à 1 400°C — une approche héritée des navettes Apollo mais radicalement optimisée.</p>
+      <p>Troisième pilier : le guidage, navigation et contrôle (GNC). Atterrir une fusée de 40 mètres sur une cible de 30 mètres de diamètre requiert une informatique triple-redondante. Le Falcon 9 utilise 3 processeurs x86 dual-core en système acteur-juge : chaque décision est validée par les trois cœurs simultanément. Des algorithmes recalculent en temps réel la trajectoire optimale, ajustant vecteur de poussée, grilles de direction et throttling à chaque fraction de seconde.</p>
+      <p>Quatrième pilier : les matériaux avancés. Le corps du Falcon 9 est en alliage aluminium-lithium, 30% plus léger que l'aluminium classique. SpaceX a fait un choix contre-intuitif pour le Starship : de l'acier inoxydable série 300, dix fois moins cher que les composites carbone, avec un point de fusion à 1 400°C et un système de refroidissement par transpiration de méthane dans les parois.</p>
+    `
+  },
+  'tech-2': {
+    tag: 'INNOVATION', tagClass: 'tag-innovation',
+    title: 'Transpiration cooling : comment le Starship se refroidit de l\'intérieur',
+    readTime: '1 min', section: 'Technologie',
+    lead: 'SpaceX utilise une technique de refroidissement radicale empruntée aux recherches aérospatiales des années 1960 mais jamais appliquée à cette échelle : le transpiration cooling.',
+    body: `
+      <p>Le principe : de petites quantités de méthane liquide sont injectées à travers des micropores dans la paroi en acier inoxydable du Starship. En s'évaporant, ce méthane crée une fine couche de gaz froid qui s'interpose entre la surface métallique et les gaz brûlants de la rentrée atmosphérique. La paroi est ainsi protégée sans tuiles thermiques sur certaines zones — notamment le fond du vaisseau, exposé au flux le plus intense.</p>
+      <p>Cette approche est complémentaire aux 18 000 tuiles céramiques qui couvrent la face ventrale. Ensemble, ces deux systèmes permettent à l'acier inoxydable — un matériau à priori inadapté à la rentrée atmosphérique — de survivre à des températures de surface dépassant 1 400°C. C'est l'une des raisons pour lesquelles Elon Musk a défendu l'acier contre tous les avis contraires dès 2018 : ce métal supporte le refroidissement actif bien mieux que les composites carbone.</p>
+      <p>La limite actuelle : la quantité de méthane utilisée pour le refroidissement réduit mécaniquement la masse de propergol disponible pour la propulsion. SpaceX optimise en permanence ce compromis, et les ingénieurs travaillent à réduire la consommation de méthane de transpiration à chaque version du Starship.</p>
+    `
+  },
+  'tech-3': {
+    tag: 'DATA', tagClass: 'tag-data',
+    title: 'Jumeaux numériques et Big Data : la maintenance prédictive des boosters',
+    readTime: '1 min 30', section: 'Technologie',
+    lead: 'Entre chaque vol, un booster Falcon 9 est soumis à une procédure d\'inspection rigoureuse qui s\'appuie sur des technologies empruntées à l\'aéronautique et poussées bien au-delà.',
+    body: `
+      <p>Des milliers de capteurs embarqués transmettent en temps réel les données de pression, température, vibration et déformation de chaque composant durant le vol. Ces données alimentent un jumeau numérique — une réplique virtuelle précise du booster — qui prédit l'usure des composants et optimise les intervalles de maintenance. Concrètement : au lieu de changer une pièce à intervalles fixes, SpaceX la remplace uniquement quand le modèle numérique indique que sa dégradation approche d'un seuil critique.</p>
+      <p>Les contrôles physiques sont non-destructifs : ultrasons pour détecter les fissures internes, thermographie infrarouge pour les points chauds, radiographie pour les soudures critiques. L'objectif est de ne jamais démonter ce qui n'a pas besoin de l'être — chaque démontage introduit un risque de réassemblage imparfait.</p>
+      <p>Le record actuel — un même booster ayant effectué 34 vols (B1067) — est la preuve empirique que cette approche fonctionne. Mais la communauté scientifique s'interroge encore sur le comportement des structures au-delà de 50 vols : la fatigue des matériaux dans des cycles thermiques aussi extrêmes n'a pas d'équivalent historique dans l'industrie.</p>
+    `
+  },
+  'marche-1': {
+    tag: 'ÉCONOMIE', tagClass: 'tag-economie',
+    title: 'La révolution des coûts : ce que la réutilisation a changé au marché spatial',
+    readTime: '2 min', section: 'Enjeux & Marché',
+    lead: 'En 2010, le coût moyen de mise en orbite basse était d\'environ 54 000 dollars par kilogramme. En 2026, le Falcon 9 atteint environ 2 700 dollars par kilo — une réduction de 95% en quinze ans.',
+    body: `
+      <p>Ce n'est pas qu'une question de technologie. SpaceX a appliqué au spatial les principes de la production industrielle en série : standardisation des composants, cadence de production élevée, réutilisation systématique. En 2025, SpaceX a effectué 165 lancements orbitaux — soit une fusée toutes les 48 heures en moyenne. C'est plus que tous les autres opérateurs mondiaux réunis.</p>
+      <p>L'impact sur la concurrence est brutal. Ariane 5, le lanceur européen jadis dominant sur le marché commercial, coûtait environ 150 à 180 millions d'euros par lancement et était entièrement jetable. Face à un Falcon 9 à 67 millions de dollars partiellement réutilisable, Arianespace a perdu des parts de marché massives entre 2018 et 2024. Ariane 6, lancée en 2024 mais non réutilisable dans sa version initiale, tente de réduire l'écart.</p>
+      <p>L'autre révolution économique, c'est ce que les faibles coûts rendent possible : des constellations de plusieurs milliers de satellites que personne n'aurait financé il y a dix ans. Starlink compte aujourd'hui plus de 6 000 satellites en orbite, déployés quasi exclusivement par des Falcon 9 réutilisés. Ce modèle vertical — construire le lanceur ET la charge utile — confère à SpaceX un avantage compétitif structurel qui va bien au-delà du simple lanceur.</p>
+    `
+  },
+  'marche-2': {
+    tag: 'GÉOPOLITIQUE', tagClass: 'tag-geopolitique',
+    title: 'Souveraineté spatiale : l\'Europe peut-elle rattraper son retard ?',
+    readTime: '2 min', section: 'Enjeux & Marché',
+    lead: 'La capacité à accéder à l\'espace de manière autonome est un enjeu de souveraineté nationale de premier ordre. Un pays ou un bloc qui dépend d\'un acteur privé étranger pour lancer ses satellites est, dans les faits, dépendant de cet acteur pour une partie de sa sécurité nationale.',
+    body: `
+      <p>L'Europe a pris conscience de cette vulnérabilité avec un temps de retard. Après la retraite d'Ariane 5 et les déboires du programme Ariane 6 — dont le premier vol commercial n'a eu lieu qu'en 2024 — l'Europe s'est retrouvée sans accès souverain à l'espace durant plusieurs mois, obligée de recourir à SpaceX pour certains lancements institutionnels. Un signal d'alarme difficile à ignorer.</p>
+      <p>La réponse européenne s'organise autour de deux axes. À court terme, Ariane 6 doit monter en cadence et réduire ses coûts opérationnels. À moyen terme, ArianeGroup développe le moteur Prometheus — un démonstrateur de propulsion réutilisable au méthane, conçu pour équiper une future génération de lanceurs européens pleinement réutilisables. Le budget alloué par l'ESA à la réutilisation a été significativement augmenté lors du conseil ministériel de 2023.</p>
+      <p>La Chine, de son côté, avance à un rythme soutenu. LandSpace a réussi en 2023 le premier lancement orbital au monde d'une fusée méthane/LOX avec son Zhuque-2. Son successeur, le Zhuque-3, est conçu pour être réutilisable. CAS Space et d'autres acteurs privés chinois accélèrent leurs programmes. La fenêtre d'opportunité pour l'Europe se referme progressivement.</p>
+    `
+  },
+  'marche-3': {
+    tag: 'ENV. SPATIAL', tagClass: 'tag-env',
+    title: 'Constellations de satellites : quel impact sur l\'orbite terrestre ?',
+    readTime: '1 min 30', section: 'Enjeux & Marché',
+    lead: 'La réutilisation a rendu économiquement viable ce qui semblait impossible il y a dix ans : déployer des constellations de plusieurs milliers de satellites en orbite basse.',
+    body: `
+      <p>Starlink de SpaceX dépasse les 6 000 satellites actifs en 2026. OneWeb, Amazon Kuiper, et plusieurs acteurs chinois projettent des constellations de plusieurs milliers d'unités supplémentaires. On estime que 100 000 satellites pourraient se trouver en orbite basse d'ici 2030.</p>
+      <p>Ce déploiement massif soulève une question que l'industrie ne peut plus ignorer : la durabilité de l'environnement orbital. L'orbite basse terrestre — entre 200 et 2 000 km d'altitude — est un espace fini. Chaque satellite représente un risque de collision potentielle avec les quelque 27 000 objets déjà catalogués en orbite, dont environ un tiers sont des débris non fonctionnels.</p>
+      <p>Le syndrome de Kessler, théorisé par le scientifique de la NASA Donald Kessler en 1978, décrit un scénario catastrophique : une première collision génère des débris, qui provoquent d'autres collisions, dans une réaction en chaîne qui pourrait rendre certaines orbites inutilisables pendant des décennies. Les experts de l'ESA estiment que sans régulation internationale contraignante, ce scénario devient statistiquement probable avant 2050 pour certaines orbites. La réutilisation a résolu le problème économique du lancement. Elle n'a pas résolu le problème de la gouvernance de l'espace.</p>
+    `
+  },
+  'prosp-1': {
+    tag: 'ANALYSE', tagClass: 'tag-analyse',
+    title: '2030-2040 : trois scénarios pour le futur de l\'accès à l\'espace',
+    readTime: '2 min', section: 'Prospective',
+    lead: 'La prospective spatiale n\'est pas de la science-fiction — c\'est un exercice méthodologique qui consiste à identifier les trajectoires possibles à partir des tendances observables aujourd\'hui.',
+    body: `
+      <p><strong>Scénario 1 — L'espace banalisé.</strong> Le Starship tient ses promesses de pleine réutilisation en 2026-2027, et le coût par kilogramme en orbite basse tombe sous les 100 dollars d'ici 2035. À ce niveau de prix, l'accès à l'espace devient comparable au fret aérien express. Des stations orbitales privées deviennent économiquement viables sans subventions gouvernementales. Des usines en microgravité commencent à produire des matériaux impossibles à synthétiser sur Terre — cristaux pharmaceutiques de haute pureté, fibres optiques sans défaut, alliages métalliques homogènes.</p>
+      <p><strong>Scénario 2 — La consolidation industrielle.</strong> C'est le scénario le plus probable à horizon 2035. Le marché des lanceurs se consolide autour de deux à trois acteurs dominants : SpaceX, Blue Origin avec son New Glenn, et un acteur non-américain — probablement un consortium européen ou chinois. Les autres se spécialisent sur des niches : petits satellites, orbites polaires, missions scientifiques. Une régulation internationale du spectre orbital et des débris commence à prendre forme sous l'égide d'une instance ONU réformée.</p>
+      <p><strong>Scénario 3 — La rupture technologique.</strong> La propulsion chimique, quelle que soit son niveau d'optimisation, est contrainte par l'équation de Tsiolkovsky et le rapport masse propergol/masse structure. Pour des missions interplanétaires ambitieuses, une rupture technologique est nécessaire. La propulsion nucléaire thermique — qui utilise un réacteur nucléaire pour chauffer un propergol et générer de la poussée avec une efficacité deux à trois fois supérieure aux meilleurs moteurs chimiques — est activement développée par la NASA et la DARPA, avec des tests en vol planifiés pour la fin des années 2020.</p>
+    `
+  },
+  'prosp-2': {
+    tag: 'EXPLORATION', tagClass: 'tag-exploration',
+    title: 'Mars : la réutilisation comme condition sine qua non',
+    readTime: '1 min', section: 'Prospective',
+    lead: 'L\'ambition de SpaceX n\'a jamais été uniquement commerciale. Le Starship a été conçu dès le départ comme un véhicule interplanétaire, et Mars est l\'objectif déclaré d\'Elon Musk depuis la fondation de l\'entreprise en 2002.',
+    body: `
+      <p>La réutilisation n'est pas une fin en soi — c'est la condition indispensable à la colonisation d'une autre planète. Le raisonnement est simple : une mission aller-retour vers Mars nécessite une quantité de propergol considérable. Si le véhicule est jetable, chaque mission coûte des milliards de dollars et nécessite des années de préparation. Une flotte de Starship réutilisables, se ravitaillant en orbite terrestre puis en propergol produit localement sur Mars, change fondamentalement l'équation.</p>
+      <p>Le méthane et l'oxygène liquide que brûlent les moteurs Raptor peuvent théoriquement être produits sur Mars à partir du CO₂ atmosphérique et de la glace d'eau présente dans le sol — via le procédé Sabatier. Ce n'est pas de la science-fiction : c'est de la chimie industrielle connue, appliquée dans un contexte extraterrestre. Les défis sont colossaux — production d'énergie sur Mars, extraction de l'eau, infrastructure de production de propergol — mais le principe est démontré en laboratoire.</p>
+      <p>La réutilisation du Starship est la première brique d'une architecture qui rend Mars accessible. Non pas à quelques astronautes gouvernementaux pour quelques semaines, mais à des milliers de personnes pour des séjours permanents.</p>
+    `
+  },
+  'prosp-3': {
+    tag: 'R&D', tagClass: 'tag-rd',
+    title: 'Propulsion nucléaire : la prochaine rupture ?',
+    readTime: '1 min', section: 'Prospective',
+    lead: 'Depuis les années 1950, les ingénieurs savent que la propulsion nucléaire thermique est théoriquement supérieure à la propulsion chimique pour les voyages dans l\'espace profond. Pourtant, aucun moteur nucléaire n\'a encore volé sur un lanceur civil.',
+    body: `
+      <p>Le principe est le suivant : au lieu de brûler du carburant chimique pour créer de la chaleur, un réacteur nucléaire chauffe directement un propergol — généralement de l'hydrogène liquide — qui est ensuite expulsé par une tuyère. L'avantage : une impulsion spécifique deux à trois fois supérieure aux meilleurs moteurs chimiques actuels, ce qui se traduit par une réduction proportionnelle de la masse de propergol nécessaire pour une mission donnée.</p>
+      <p>La NASA développe activement ce concept dans le cadre du programme DRACO (Demonstration Rocket for Agile Cislunar Operations), en partenariat avec la DARPA. Un démonstrateur en orbite est planifié avant 2030. Si les tests sont concluants, des applications civiles et militaires suivront rapidement.</p>
+      <p>La propulsion nucléaire ne remplacera pas la réutilisation chimique pour les lancements depuis le sol terrestre — les considérations de sécurité radiologique l'excluent à court terme. Mais elle pourrait devenir le standard pour les missions au-delà de l'orbite lunaire, rendant caduques les contraintes de l'équation de Tsiolkovsky pour les voyages interplanétaires.</p>
+    `
+  }
+};
+
+// ─── STATE ───
+let currentTab = 'accueil';
+let prevTab = 'accueil';
+let isLoggedIn = sessionStorage.getItem('reentry_admin') === 'true';
+
+// ─── TAB SWITCHING ───
+function showTab(tabName) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  const panel = document.getElementById('panel-' + tabName);
+  if (panel) {
+    panel.classList.add('active');
+    currentTab = tabName;
+  }
+
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.trim().toLowerCase().replace(/[^a-zàéè&]/g,'') === tabName.toLowerCase().replace(/[^a-zàéè&]/g,'')) {
+      b.classList.add('active');
+    }
+  });
+
+  // Match nav buttons by onclick
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    const onc = b.getAttribute('onclick') || '';
+    if (onc.includes("'" + tabName + "'")) b.classList.add('active');
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  initReveal();
+}
+
+// ─── ARTICLE VIEW ───
+function openArticle(id) {
+  const art = ARTICLES[id];
+  if (!art) return;
+  prevTab = currentTab;
+
+  const html = `
+    <button class="back-btn" onclick="showTab('${prevTab}')">
+      ← Retour
+    </button>
+    <span class="card-tag ${art.tagClass}" style="display:inline-flex;margin-bottom:16px;">${art.tag}</span>
+    <h1 class="article-full-title">${art.title}</h1>
+    <div class="article-full-meta">
+      <span>⏱ ${art.readTime}</span>
+      <span>·</span>
+      <span>${art.section}</span>
+      <span>·</span>
+      <span>ReEntry</span>
+    </div>
+    <div class="article-full-lead">${art.lead}</div>
+    <div class="article-full-body">${art.body}</div>
+  `;
+
+  document.getElementById('article-content').innerHTML = html;
+  showTab('article');
+}
+
+// ─── AUDIO UPLOAD ───
+function handleAudioUpload(input, audioId, zoneId) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const audio = document.getElementById(audioId);
+  if (audio) {
+    audio.src = url;
+    audio.style.display = 'block';
+  }
+  const zone = document.getElementById(zoneId);
+  if (zone) {
+    zone.classList.add('has-file');
+    zone.querySelector('.upload-zone-text').innerHTML =
+      `<strong style="color:var(--blue)">✓ ${file.name}</strong><br><span style="font-size:11px;color:#AAA;">${(file.size/1024/1024).toFixed(1)} MB</span>`;
+  }
+}
+
+function handleAllAudioUpload(input, audioIds, zoneIds, okId) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  audioIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = url; el.style.display = 'block'; }
+  });
+  zoneIds.forEach(id => {
+    const zone = document.getElementById(id);
+    if (zone) {
+      zone.classList.add('has-file');
+      zone.querySelector('.upload-zone-text').innerHTML =
+        `<strong style="color:var(--blue)">✓ ${file.name}</strong><br><span style="font-size:11px;color:#AAA;">${(file.size/1024/1024).toFixed(1)} MB</span>`;
+    }
+  });
+  const ok = document.getElementById(okId);
+  if (ok) ok.classList.add('show');
+}
+
+// ─── ADMIN ───
+function openAdmin() {
+  const modal = document.getElementById('admin-modal');
+  modal.classList.add('open');
+  if (isLoggedIn) showAdminPanel();
+  else showLoginForm();
+}
+
+function closeAdmin() {
+  document.getElementById('admin-modal').classList.remove('open');
+}
+
+function showLoginForm() {
+  document.getElementById('login-form').style.display = 'block';
+  document.getElementById('admin-panel-content').style.display = 'none';
+  document.getElementById('modal-title-text').textContent = 'Connexion Admin';
+}
+
+function showAdminPanel() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('admin-panel-content').style.display = 'block';
+  document.getElementById('modal-title-text').textContent = 'Espace Administrateur';
+}
+
+function doLogin() {
+  const user = document.getElementById('admin-user').value.trim();
+  const pass = document.getElementById('admin-pass').value.trim();
+  const err = document.getElementById('login-error');
+  if (user === 'Maitrefusee' && pass === 'Maitrejoris') {
+    isLoggedIn = true;
+    sessionStorage.setItem('reentry_admin', 'true');
+    err.classList.remove('show');
+    showAdminPanel();
+  } else {
+    err.classList.add('show');
+    document.getElementById('admin-pass').value = '';
+  }
+}
+
+function doLogout() {
+  isLoggedIn = false;
+  sessionStorage.removeItem('reentry_admin');
+  document.getElementById('admin-user').value = '';
+  document.getElementById('admin-pass').value = '';
+  showLoginForm();
+}
+
+// Close modal on backdrop click
+document.getElementById('admin-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+
+// ─── SCROLL REVEAL ───
+function initReveal() {
+  setTimeout(() => {
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => observer.observe(el));
+  }, 100);
+}
+
+// ─── SEARCH ───
+document.getElementById('search-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const q = this.value.toLowerCase();
+    if (!q) return;
+    const hit = Object.entries(ARTICLES).find(([k, v]) =>
+      v.title.toLowerCase().includes(q) || v.body.toLowerCase().includes(q) || v.lead.toLowerCase().includes(q)
+    );
+    if (hit) { openArticle(hit[0]); this.value = ''; }
+  }
+});
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', async () => {
+  initReveal();
+  await restoreAll();
+});
+
+// ════════════════════════════════════════════════════════
+//   CONFIGURATION SUPABASE — À remplir ici
+//   Tableau de bord Supabase → Settings → API
+// ════════════════════════════════════════════════════════
+
+const SUPABASE_URL  = 'https://ojnkkaythddsfkkooajc.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qbmtrYXl0aGRkc2Zra29vYWpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjczODgsImV4cCI6MjA5NTM0MzM4OH0.f44PGdgPjUmXdISgimulQrEIidjr2x_kcmAX2RSJ4qU';
+
+// ════════════════════════════════════════════════════════
+
+// ── Init sécurisé : pas de crash si les clés ne sont pas encore remplies ──
+let _sb = null;
+let _sbReady = false;
+
+(function initSupabase() {
+  if (
+    !SUPABASE_URL || SUPABASE_URL.includes('VOTRE_') ||
+    !SUPABASE_ANON || SUPABASE_ANON.includes('VOTRE_')
+  ) {
+    console.warn('[ReEntry] Clés Supabase non configurées — mode hors-ligne. Remplissez SUPABASE_URL et SUPABASE_ANON dans index.html.');
+    showConfigBanner();
+    return;
+  }
+  try {
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    _sbReady = true;
+  } catch(e) {
+    console.error('[ReEntry] Erreur init Supabase :', e);
+    showConfigBanner();
+  }
+})();
+
+function showConfigBanner() {
+  // Affiche une bannière discrète pour l'admin uniquement si les clés sont manquantes
+  document.addEventListener('DOMContentLoaded', () => {
+    const b = document.createElement('div');
+    b.id = 'sb-banner';
+    b.innerHTML = `
+      <div style="
+        position:fixed;bottom:20px;right:20px;z-index:9999;
+        background:#1A1A2E;color:#fff;
+        border-left:4px solid #FF4D00;
+        border-radius:10px;padding:14px 18px;
+        font-family:'IBM Plex Mono',monospace;font-size:12px;
+        max-width:340px;line-height:1.6;
+        box-shadow:0 8px 32px rgba(0,0,0,0.4);
+      ">
+        <div style="font-weight:700;color:#FF4D00;margin-bottom:6px;">⚠ Supabase non configuré</div>
+        Ouvrez <strong>index.html</strong>, cherchez<br>
+        <code style="color:#6C35DE">VOTRE_SUPABASE_URL</code><br>
+        et remplacez les deux clés.<br>
+        <span style="color:rgba(255,255,255,0.4);font-size:10px;">Ce message n'est visible que pour vous.</span>
+        <button onclick="document.getElementById('sb-banner').remove()" style="
+          display:block;margin-top:10px;background:rgba(255,255,255,0.1);
+          border:none;color:#fff;padding:5px 12px;border-radius:6px;
+          cursor:pointer;font-family:inherit;font-size:11px;
+        ">Fermer</button>
+      </div>`;
+    document.body.appendChild(b);
+  });
+}
+
+// ── Helpers DB — silencieux si pas de connexion ──
+async function dbGet(key) {
+  if (!_sbReady) return null;
+  try {
+    const { data } = await _sb.from('reentry_config')
+      .select('value').eq('key', key).maybeSingle();
+    return data ? data.value : null;
+  } catch(e) { return null; }
+}
+
+async function dbSet(key, value) {
+  if (!_sbReady) return;
+  try {
+    await _sb.from('reentry_config')
+      .upsert({ key, value }, { onConflict: 'key' });
+  } catch(e) { console.warn('[ReEntry] dbSet error:', e.message); }
+}
+
+// ════════════════════════════════
+// RESTORE AU CHARGEMENT (toutes clés)
+// ════════════════════════════════
+async function restoreAll() {
+  // Récupérer toutes les clés en une seule requête
+  let rows = [];
+  try {
+    const { data } = await _sb.from('reentry_config').select('key, value');
+    rows = data || [];
+  } catch(e) {}
+
+  const get = key => { const r = rows.find(r => r.key === key); return r ? r.value : null; };
+
+  // ── Vidéos ──
+  for (const n of [1, 2]) {
+    const url   = get('video_url_'   + n);
+    const title = get('video_title_' + n);
+    const desc  = get('video_desc_'  + n);
+
+    if (title) {
+      const ti = document.getElementById('vtitle-input-' + n);
+      const td = document.getElementById('vtitle-' + n);
+      if (ti) ti.value = title;
+      if (td) td.textContent = title;
+    }
+    if (desc) {
+      const di = document.getElementById('vdesc-input-' + n);
+      const dd = document.getElementById('vdesc-' + n);
+      if (di) di.value = desc;
+      if (dd) dd.textContent = desc;
+    }
+    if (url) {
+      const input = document.getElementById('vurl-' + n);
+      if (input) input.value = url;
+      previewVideo(n, true); // true = mode silencieux (pas de sauvegarde en boucle)
+    }
+  }
+
+  // ── Podcasts ──
+  for (const n of [1, 2]) {
+    const url = get('podcast_url_' + n);
+    const ext = get('podcast_ext_' + n) || 'mp3';
+    if (url) applyPodcastAudio(n, url, ext);
+  }
+}
+
+// ════════════════════════════════
+// PODCAST — upload vers Supabase Storage
+// ════════════════════════════════
+async function uploadPodcast(input, n) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (!_sbReady) {
+    setPodFeedback(n, '✗ Supabase non configuré — remplissez les clés dans index.html.', 'err');
+    return;
+  }
+
+  setPodFeedback(n, '⏳ Upload en cours… patience', '');
+
+  const ext      = file.name.split('.').pop().toLowerCase();
+  const fileName = 'podcast-' + n + '.' + ext;
+
+  // Upload dans le bucket "podcasts" (public)
+  const { error: upErr } = await _sb.storage
+    .from('podcasts')
+    .upload(fileName, file, { upsert: true, contentType: file.type });
+
+  if (upErr) {
+    setPodFeedback(n, '✗ Erreur upload : ' + upErr.message, 'err');
+    return;
+  }
+
+  // URL publique permanente
+  const { data: urlData } = _sb.storage.from('podcasts').getPublicUrl(fileName);
+  const publicUrl = urlData.publicUrl;
+
+  // Sauvegarder l'URL + l'extension en base
+  await dbSet('podcast_url_' + n, publicUrl);
+  await dbSet('podcast_ext_' + n, ext);
+
+  // Activer le lecteur
+  applyPodcastAudio(n, publicUrl, ext);
+
+  // Mettre à jour les zones de dépôt (accueil + onglet podcasts)
+  const sizeMB = (file.size/1024/1024).toFixed(1);
+  const successHTML = `<div class="upload-zone-text"><div class="uz-icon" style="background:rgba(0,180,100,0.1)"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l7 7L23 7" stroke="#00A050" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><strong style="color:#00A050">✓ ${file.name}</strong><span class="uz-formats" style="background:rgba(0,180,100,0.1);color:#00A050">${ext.toUpperCase()} · ${sizeMB} MB</span><span class="uz-note">Stocké sur Supabase · permanent pour tous</span></div>`;
+  ['pod-upload-' + n, 'home-upload-' + n].forEach(id => {
+    const z = document.getElementById(id);
+    if (z) { z.classList.add('has-file'); z.innerHTML = successHTML; }
+  });
+
+  setPodFeedback(n, '✓ Épisode ' + n + ' uploadé — permanent, visible par tous les visiteurs.', 'ok');
+}
+
+// Les navigateurs lisent l'audio d'un MP4 via <audio> sans problème
+function applyPodcastAudio(n, url, ext) {
+  ['pod-audio-' + n, 'home-audio-' + n].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Supprimer les anciennes sources
+    el.removeAttribute('src');
+    el.innerHTML = '';
+    // Ajouter une source avec le bon type MIME
+    const mime = (ext === 'mp4' || ext === 'm4a') ? 'video/mp4' : 'audio/' + ext;
+    const src = document.createElement('source');
+    src.src  = url;
+    src.type = mime;
+    el.appendChild(src);
+    el.style.display = 'block';
+    el.load();
+  });
+}
+
+function setPodFeedback(n, msg, type) {
+  const fb = document.getElementById('pod-fb-' + n);
+  if (!fb) return;
+  fb.textContent = msg;
+  fb.className = 'pod-feedback' + (type ? ' ' + type : '');
+}
+
+// ════════════════════════════════
+// VIDÉO — sauvegarde Supabase
+// ════════════════════════════════
+const _videoSaveTimers = {};
+function scheduleVideoSave(n) {
+  clearTimeout(_videoSaveTimers[n]);
+  _videoSaveTimers[n] = setTimeout(() => saveVideoState(n), 900);
+}
+
+async function saveVideoState(n) {
+  const url   = (document.getElementById('vurl-'          + n) || {}).value || '';
+  const title = (document.getElementById('vtitle-input-'  + n) || {}).value || '';
+  const desc  = (document.getElementById('vdesc-input-'   + n) || {}).value || '';
+  await Promise.all([
+    dbSet('video_url_'   + n, url),
+    dbSet('video_title_' + n, title),
+    dbSet('video_desc_'  + n, desc),
+  ]);
+}
+
+// Patch inputs title/desc
+document.addEventListener('DOMContentLoaded', () => {
+  [1, 2].forEach(n => {
+    const ti = document.getElementById('vtitle-input-' + n);
+    const di = document.getElementById('vdesc-input-'  + n);
+    if (ti) ti.addEventListener('change', () => saveVideoState(n));
+    if (di) di.addEventListener('change', () => saveVideoState(n));
+  });
+});
+
+// ════════════════════════════════
+// VIDEO EMBED — miniature + iframe
+// ════════════════════════════════
+function extractYouTubeId(url) {
+  url = (url || '').trim();
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /embed\/([a-zA-Z0-9_-]{11})/,
+    /shorts\/([a-zA-Z0-9_-]{11})/,
+    /live\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// silent=true quand appelé depuis restoreAll (évite boucle save)
+function previewVideo(n, silent) {
+  const input    = document.getElementById('vurl-' + n);
+  const fb       = document.getElementById('vfeedback-' + n);
+  const thumb    = document.getElementById('vthumb-' + n);
+  const thumbImg = document.getElementById('vthumb-img-' + n);
+  const emptyPH  = document.getElementById('vempty-' + n);
+  const id       = extractYouTubeId(input ? input.value : '');
+
+  if (!silent) scheduleVideoSave(n);
+
+  if (!input || !input.value.trim()) {
+    if (fb) { fb.textContent = ''; fb.className = 'video-feedback'; }
+    showEmpty(n); return;
+  }
+
+  if (id) {
+    if (thumbImg) {
+      thumbImg.src = 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
+      thumbImg.onerror = function() {
+        this.src = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+        this.onerror = null;
+      };
+    }
+    if (thumb)   { thumb.style.display = 'flex'; thumb.dataset.ytid = id; }
+    if (emptyPH) emptyPH.style.display = 'none';
+    if (fb) { fb.textContent = '✓ Miniature chargée — cliquez dessus ou sur Intégrer'; fb.className = 'video-feedback ok'; }
+  } else {
+    showEmpty(n);
+    if (fb) { fb.textContent = 'Lien non reconnu. Formats : youtube.com/watch?v=… ou youtu.be/…'; fb.className = 'video-feedback err'; }
+  }
+}
+
+function showEmpty(n) {
+  const thumb   = document.getElementById('vthumb-' + n);
+  const emptyPH = document.getElementById('vempty-' + n);
+  const iframe  = document.getElementById('viframe-' + n);
+  if (thumb)   thumb.style.display   = 'none';
+  if (emptyPH) emptyPH.style.display = 'flex';
+  if (iframe)  { iframe.style.display = 'none'; iframe.src = ''; }
+}
+
+function embedVideo(n, autoplay) {
+  const input   = document.getElementById('vurl-' + n);
+  const fb      = document.getElementById('vfeedback-' + n);
+  const iframe  = document.getElementById('viframe-' + n);
+  const thumb   = document.getElementById('vthumb-' + n);
+  const emptyPH = document.getElementById('vempty-' + n);
+
+  const id = (thumb && thumb.dataset.ytid) || extractYouTubeId(input ? input.value : '');
+  if (!id) {
+    if (fb) { fb.textContent = 'Lien invalide. Copiez l\'URL depuis YouTube.'; fb.className = 'video-feedback err'; }
+    return;
+  }
+
+  const ap = autoplay ? '&autoplay=1' : '';
+  iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0&modestbranding=1' + ap;
+  iframe.style.display = 'block';
+  if (thumb)   thumb.style.display   = 'none';
+  if (emptyPH) emptyPH.style.display = 'none';
+  if (fb) { fb.textContent = '✓ Lecteur chargé.'; fb.className = 'video-feedback ok'; }
+}
+
+</script>
+
+</body>
+</html>
