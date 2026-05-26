@@ -653,17 +653,71 @@
   /* Upload zone */
   .upload-zone {
     border: 2px dashed var(--gray-mid);
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 0;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.22s;
     background: var(--gray-light);
+    overflow: hidden;
+    margin-top: 14px;
   }
-  .upload-zone:hover { border-color: var(--blue); background: rgba(0,102,255,0.03); }
-  .upload-zone.has-file { border-color: var(--blue); background: rgba(0,102,255,0.05); border-style: solid; }
-  .upload-zone-text { font-size: 13px; color: var(--gray-text); }
-  .upload-zone-text strong { color: var(--blue); }
+  .upload-zone:hover {
+    border-color: var(--blue);
+    background: rgba(0,102,255,0.04);
+  }
+  .upload-zone:hover .uz-icon svg { stroke: var(--blue); }
+  .upload-zone:hover .uz-icon { background: rgba(0,102,255,0.1); }
+
+  .upload-zone.has-file {
+    border-color: var(--blue);
+    border-style: solid;
+    background: rgba(0,102,255,0.04);
+  }
+
+  .upload-zone-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 22px 20px;
+  }
+
+  .uz-icon {
+    width: 52px; height: 52px;
+    border-radius: 12px;
+    background: rgba(0,102,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+  .uz-icon svg { stroke: var(--gray-text); transition: stroke 0.2s; }
+
+  .upload-zone-text strong {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--black);
+  }
+
+  .uz-formats {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    letter-spacing: 0.06em;
+    background: rgba(0,102,255,0.08);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .uz-note {
+    font-size: 11px;
+    color: #AAA;
+    font-family: var(--font-mono);
+  }
 
   audio.podcast-player {
     width: 100%;
@@ -1907,9 +1961,16 @@
           <div class="podcast-duration">~ 6 min 28</div>
           <audio id="home-audio-1" class="podcast-player" controls style="display:none"></audio>
           <div class="upload-zone" id="home-upload-1" onclick="document.getElementById('home-file-1').click()">
-            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> — stocké sur Supabase<br><span style="font-size:11px;color:#AAA;">MP3, WAV acceptés</span></div>
+            <div class="upload-zone-text">
+              <div class="uz-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4v14M8 10l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="20" width="20" height="4" rx="2" fill="currentColor" opacity="0.2"/></svg>
+              </div>
+              <strong>Déposer l'épisode</strong>
+              <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+              <span class="uz-note">Stocké sur Supabase — permanent</span>
+            </div>
           </div>
-          <input type="file" id="home-file-1" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 1)">
+          <input type="file" id="home-file-1" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 1)">
         </div>
 
         <div class="podcast-card">
@@ -1918,9 +1979,16 @@
           <div class="podcast-duration">~ 8 min 22</div>
           <audio id="home-audio-2" class="podcast-player" controls style="display:none"></audio>
           <div class="upload-zone" id="home-upload-2" onclick="document.getElementById('home-file-2').click()">
-            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> — stocké sur Supabase<br><span style="font-size:11px;color:#AAA;">MP3, WAV acceptés</span></div>
+            <div class="upload-zone-text">
+              <div class="uz-icon">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4v14M8 10l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="20" width="20" height="4" rx="2" fill="currentColor" opacity="0.2"/></svg>
+              </div>
+              <strong>Déposer l'épisode</strong>
+              <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+              <span class="uz-note">Stocké sur Supabase — permanent</span>
+            </div>
           </div>
-          <input type="file" id="home-file-2" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 2)">
+          <input type="file" id="home-file-2" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 2)">
         </div>
 
       </div>
@@ -2069,7 +2137,7 @@
     <div class="onglet-header">
       <div class="onglet-header-inner">
         <div class="onglet-title">Podcasts</div>
-        <div class="onglet-desc">Déposez vos fichiers audio — ils sont stockés sur Supabase et restent disponibles pour tous les visiteurs, à chaque visite.</div>
+        <div class="onglet-desc">Déposez vos fichiers — MP4, MP3, WAV acceptés. Stockés sur Supabase, accessibles pour tous les visiteurs à chaque visite.</div>
       </div>
     </div>
     <div class="podcasts-section">
@@ -2082,11 +2150,15 @@
         <audio id="pod-audio-1" class="podcast-player" controls style="display:none"></audio>
         <div class="upload-zone" id="pod-upload-1" onclick="document.getElementById('pod-file-1').click()">
           <div class="upload-zone-text">
-            <strong>Déposer l'épisode</strong> — stocké sur Supabase<br>
-            <span style="font-size:11px;color:#AAA;">MP3, WAV acceptés · permanent pour tous les visiteurs</span>
+            <div class="uz-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4v16M9 11l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="23" width="24" height="5" rx="2.5" fill="currentColor" opacity="0.18"/></svg>
+            </div>
+            <strong>Déposer l'épisode 01</strong>
+            <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+            <span class="uz-note">Fichier stocké sur Supabase — permanent pour tous</span>
           </div>
         </div>
-        <input type="file" id="pod-file-1" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 1)">
+        <input type="file" id="pod-file-1" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 1)">
         <div class="pod-feedback" id="pod-fb-1"></div>
       </div>
 
@@ -2098,11 +2170,15 @@
         <audio id="pod-audio-2" class="podcast-player" controls style="display:none"></audio>
         <div class="upload-zone" id="pod-upload-2" onclick="document.getElementById('pod-file-2').click()">
           <div class="upload-zone-text">
-            <strong>Déposer l'épisode</strong> — stocké sur Supabase<br>
-            <span style="font-size:11px;color:#AAA;">MP3, WAV acceptés · permanent pour tous les visiteurs</span>
+            <div class="uz-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 4v16M9 11l7-7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="23" width="24" height="5" rx="2.5" fill="currentColor" opacity="0.18"/></svg>
+            </div>
+            <strong>Déposer l'épisode 02</strong>
+            <span class="uz-formats">MP4 · MP3 · WAV · M4A</span>
+            <span class="uz-note">Fichier stocké sur Supabase — permanent pour tous</span>
           </div>
         </div>
-        <input type="file" id="pod-file-2" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 2)">
+        <input type="file" id="pod-file-2" accept="video/mp4,audio/*,.mp4,.mp3,.wav,.m4a" style="display:none" onchange="uploadPodcast(this, 2)">
         <div class="pod-feedback" id="pod-fb-2"></div>
       </div>
 
@@ -2833,18 +2909,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ════════════════════════════════════════════════════════
-//   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 //   CONFIGURATION SUPABASE — À remplir ici
-//   Tableau de bord → Settings → API
-//   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';       // ex: https://abcdef.supabase.co
-const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';  // ex: eyJhbGci...
+//   Tableau de bord Supabase → Settings → API
 // ════════════════════════════════════════════════════════
 
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';       // ex: https://abcxyz.supabase.co
+const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';  // ex: eyJhbGci...
 
-// ── Helpers base de données ──
+// ════════════════════════════════════════════════════════
+
+// ── Init sécurisé : pas de crash si les clés ne sont pas encore remplies ──
+let _sb = null;
+let _sbReady = false;
+
+(function initSupabase() {
+  if (
+    !SUPABASE_URL || SUPABASE_URL.includes('VOTRE_') ||
+    !SUPABASE_ANON || SUPABASE_ANON.includes('VOTRE_')
+  ) {
+    console.warn('[ReEntry] Clés Supabase non configurées — mode hors-ligne. Remplissez SUPABASE_URL et SUPABASE_ANON dans index.html.');
+    showConfigBanner();
+    return;
+  }
+  try {
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    _sbReady = true;
+  } catch(e) {
+    console.error('[ReEntry] Erreur init Supabase :', e);
+    showConfigBanner();
+  }
+})();
+
+function showConfigBanner() {
+  // Affiche une bannière discrète pour l'admin uniquement si les clés sont manquantes
+  document.addEventListener('DOMContentLoaded', () => {
+    const b = document.createElement('div');
+    b.id = 'sb-banner';
+    b.innerHTML = `
+      <div style="
+        position:fixed;bottom:20px;right:20px;z-index:9999;
+        background:#1A1A2E;color:#fff;
+        border-left:4px solid #FF4D00;
+        border-radius:10px;padding:14px 18px;
+        font-family:'IBM Plex Mono',monospace;font-size:12px;
+        max-width:340px;line-height:1.6;
+        box-shadow:0 8px 32px rgba(0,0,0,0.4);
+      ">
+        <div style="font-weight:700;color:#FF4D00;margin-bottom:6px;">⚠ Supabase non configuré</div>
+        Ouvrez <strong>index.html</strong>, cherchez<br>
+        <code style="color:#6C35DE">VOTRE_SUPABASE_URL</code><br>
+        et remplacez les deux clés.<br>
+        <span style="color:rgba(255,255,255,0.4);font-size:10px;">Ce message n'est visible que pour vous.</span>
+        <button onclick="document.getElementById('sb-banner').remove()" style="
+          display:block;margin-top:10px;background:rgba(255,255,255,0.1);
+          border:none;color:#fff;padding:5px 12px;border-radius:6px;
+          cursor:pointer;font-family:inherit;font-size:11px;
+        ">Fermer</button>
+      </div>`;
+    document.body.appendChild(b);
+  });
+}
+
+// ── Helpers DB — silencieux si pas de connexion ──
 async function dbGet(key) {
+  if (!_sbReady) return null;
   try {
     const { data } = await _sb.from('reentry_config')
       .select('value').eq('key', key).maybeSingle();
@@ -2853,10 +2981,11 @@ async function dbGet(key) {
 }
 
 async function dbSet(key, value) {
+  if (!_sbReady) return;
   try {
     await _sb.from('reentry_config')
       .upsert({ key, value }, { onConflict: 'key' });
-  } catch(e) {}
+  } catch(e) { console.warn('[ReEntry] dbSet error:', e.message); }
 }
 
 // ════════════════════════════════
@@ -2900,7 +3029,8 @@ async function restoreAll() {
   // ── Podcasts ──
   for (const n of [1, 2]) {
     const url = get('podcast_url_' + n);
-    if (url) applyPodcastAudio(n, url);
+    const ext = get('podcast_ext_' + n) || 'mp3';
+    if (url) applyPodcastAudio(n, url, ext);
   }
 }
 
@@ -2910,6 +3040,11 @@ async function restoreAll() {
 async function uploadPodcast(input, n) {
   const file = input.files[0];
   if (!file) return;
+
+  if (!_sbReady) {
+    setPodFeedback(n, '✗ Supabase non configuré — remplissez les clés dans index.html.', 'err');
+    return;
+  }
 
   setPodFeedback(n, '⏳ Upload en cours… patience', '');
 
@@ -2930,26 +3065,40 @@ async function uploadPodcast(input, n) {
   const { data: urlData } = _sb.storage.from('podcasts').getPublicUrl(fileName);
   const publicUrl = urlData.publicUrl;
 
-  // Sauvegarder l'URL en base
+  // Sauvegarder l'URL + l'extension en base
   await dbSet('podcast_url_' + n, publicUrl);
+  await dbSet('podcast_ext_' + n, ext);
 
-  // Activer le lecteur audio
-  applyPodcastAudio(n, publicUrl);
+  // Activer le lecteur
+  applyPodcastAudio(n, publicUrl, ext);
 
   // Mettre à jour les zones de dépôt (accueil + onglet podcasts)
-  const label = `<strong style="color:var(--blue)">✓ ${file.name}</strong><br><span style="font-size:11px;color:#AAA;">${(file.size/1024/1024).toFixed(1)} MB · stocké sur Supabase</span>`;
+  const sizeMB = (file.size/1024/1024).toFixed(1);
+  const successHTML = `<div class="upload-zone-text"><div class="uz-icon" style="background:rgba(0,180,100,0.1)"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l7 7L23 7" stroke="#00A050" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><strong style="color:#00A050">✓ ${file.name}</strong><span class="uz-formats" style="background:rgba(0,180,100,0.1);color:#00A050">${ext.toUpperCase()} · ${sizeMB} MB</span><span class="uz-note">Stocké sur Supabase · permanent pour tous</span></div>`;
   ['pod-upload-' + n, 'home-upload-' + n].forEach(id => {
     const z = document.getElementById(id);
-    if (z) { z.classList.add('has-file'); z.querySelector('.upload-zone-text').innerHTML = label; }
+    if (z) { z.classList.add('has-file'); z.innerHTML = successHTML; }
   });
 
   setPodFeedback(n, '✓ Épisode ' + n + ' uploadé — permanent, visible par tous les visiteurs.', 'ok');
 }
 
-function applyPodcastAudio(n, url) {
+// Les navigateurs lisent l'audio d'un MP4 via <audio> sans problème
+function applyPodcastAudio(n, url, ext) {
   ['pod-audio-' + n, 'home-audio-' + n].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.src = url; el.style.display = 'block'; }
+    if (!el) return;
+    // Supprimer les anciennes sources
+    el.removeAttribute('src');
+    el.innerHTML = '';
+    // Ajouter une source avec le bon type MIME
+    const mime = (ext === 'mp4' || ext === 'm4a') ? 'video/mp4' : 'audio/' + ext;
+    const src = document.createElement('source');
+    src.src  = url;
+    src.type = mime;
+    el.appendChild(src);
+    el.style.display = 'block';
+    el.load();
   });
 }
 
