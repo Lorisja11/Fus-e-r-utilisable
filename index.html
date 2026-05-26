@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --white: #FFFFFF;
@@ -1615,6 +1616,73 @@
   .video-feedback.ok { color: #00A050; }
   .video-feedback.err { color: var(--orange); }
 
+  /* ─── PODCAST URL INPUT ─── */
+  .pod-url-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    margin-top: 14px;
+  }
+
+  .pod-url-input {
+    flex: 1;
+    border: 1.5px solid var(--gray-mid);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--black);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .pod-url-input:focus { border-color: var(--blue); }
+  .pod-url-input::placeholder { color: #CCC; }
+
+  .pod-url-btn {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: var(--font-title);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s;
+    flex-shrink: 0;
+  }
+  .pod-url-btn:hover { background: #0052CC; }
+
+  .pod-or-divider {
+    text-align: center;
+    margin: 10px 0;
+    position: relative;
+    color: var(--gray-text);
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+  .pod-or-divider::before, .pod-or-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 20px);
+    height: 1px;
+    background: var(--gray-mid);
+  }
+  .pod-or-divider::before { left: 0; }
+  .pod-or-divider::after { right: 0; }
+
+  .pod-feedback {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-top: 8px;
+    min-height: 14px;
+  }
+  .pod-feedback.ok { color: #00A050; }
+  .pod-feedback.err { color: var(--orange); }
+
 </style>
 </head>
 <body>
@@ -1837,22 +1905,22 @@
           <div class="podcast-ep-num">Épisode 01</div>
           <div class="podcast-title">Comment ça marche : les technologies de la réutilisation</div>
           <div class="podcast-duration">~ 6 min 28</div>
-          <div class="upload-zone" id="home-upload-1" onclick="document.getElementById('home-file-1').click()">
-            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> ou cliquer pour parcourir<br><span style="font-size:11px;color:#AAA;">MP3, MP4, WAV acceptés</span></div>
-          </div>
-          <input type="file" id="home-file-1" accept="audio/*,video/mp4" style="display:none" onchange="handleAudioUpload(this,'home-audio-1','home-upload-1')">
           <audio id="home-audio-1" class="podcast-player" controls style="display:none"></audio>
+          <div class="upload-zone" id="home-upload-1" onclick="document.getElementById('home-file-1').click()">
+            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> — stocké sur Supabase<br><span style="font-size:11px;color:#AAA;">MP3, WAV acceptés</span></div>
+          </div>
+          <input type="file" id="home-file-1" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 1)">
         </div>
 
         <div class="podcast-card">
           <div class="podcast-ep-num">Épisode 02</div>
           <div class="podcast-title">La guerre économique et le futur de l'espace</div>
           <div class="podcast-duration">~ 8 min 22</div>
-          <div class="upload-zone" id="home-upload-2" onclick="document.getElementById('home-file-2').click()">
-            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> ou cliquer pour parcourir<br><span style="font-size:11px;color:#AAA;">MP3, MP4, WAV acceptés</span></div>
-          </div>
-          <input type="file" id="home-file-2" accept="audio/*,video/mp4" style="display:none" onchange="handleAudioUpload(this,'home-audio-2','home-upload-2')">
           <audio id="home-audio-2" class="podcast-player" controls style="display:none"></audio>
+          <div class="upload-zone" id="home-upload-2" onclick="document.getElementById('home-file-2').click()">
+            <div class="upload-zone-text"><strong>Déposer l'épisode</strong> — stocké sur Supabase<br><span style="font-size:11px;color:#AAA;">MP3, WAV acceptés</span></div>
+          </div>
+          <input type="file" id="home-file-2" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 2)">
         </div>
 
       </div>
@@ -2001,7 +2069,7 @@
     <div class="onglet-header">
       <div class="onglet-header-inner">
         <div class="onglet-title">Podcasts</div>
-        <div class="onglet-desc">Deux épisodes audio pour comprendre la révolution des fusées réutilisables — des technologies jusqu'aux enjeux géopolitiques.</div>
+        <div class="onglet-desc">Déposez vos fichiers audio — ils sont stockés sur Supabase et restent disponibles pour tous les visiteurs, à chaque visite.</div>
       </div>
     </div>
     <div class="podcasts-section">
@@ -2009,25 +2077,33 @@
       <div class="podcast-card">
         <div class="podcast-ep-num">Épisode 01 · Technologie</div>
         <div class="podcast-title">Comment ça marche : les technologies de la réutilisation</div>
-        <div class="podcast-desc">Dans ce premier épisode, on décortique les quatre piliers technologiques qui rendent la réutilisation possible : propulsion réallumable, protection thermique, guidage autonome et matériaux avancés. De la navette spatiale de 1981 au Starship de 2024, retour sur une décennie de révolution silencieuse.</div>
+        <div class="podcast-desc">Les quatre piliers technologiques de la réutilisation — propulsion réallumable, protection thermique, guidage autonome et matériaux avancés.</div>
         <div class="podcast-duration">⏱ ~ 6 min 28</div>
-        <div class="upload-zone" id="pod-upload-1" onclick="document.getElementById('pod-file-1').click()">
-          <div class="upload-zone-text"><strong>Déposer l'épisode</strong> ou cliquer pour parcourir<br><span style="font-size:11px;color:#AAA;">MP3, MP4, WAV acceptés</span></div>
-        </div>
-        <input type="file" id="pod-file-1" accept="audio/*,video/mp4" style="display:none" onchange="handleAudioUpload(this,'pod-audio-1','pod-upload-1')">
         <audio id="pod-audio-1" class="podcast-player" controls style="display:none"></audio>
+        <div class="upload-zone" id="pod-upload-1" onclick="document.getElementById('pod-file-1').click()">
+          <div class="upload-zone-text">
+            <strong>Déposer l'épisode</strong> — stocké sur Supabase<br>
+            <span style="font-size:11px;color:#AAA;">MP3, WAV acceptés · permanent pour tous les visiteurs</span>
+          </div>
+        </div>
+        <input type="file" id="pod-file-1" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 1)">
+        <div class="pod-feedback" id="pod-fb-1"></div>
       </div>
 
       <div class="podcast-card">
         <div class="podcast-ep-num">Épisode 02 · Économie & Prospective</div>
         <div class="podcast-title">La guerre économique et le futur de l'espace</div>
-        <div class="podcast-desc">Qui domine le marché ? Que reste-t-il à l'Europe ? Quels sont les défis non résolus ? Et à quoi ressemblera le secteur en 2040 ? Dans ce second épisode, ReEntry lève le capot sur les enjeux économiques, géopolitiques et prospectifs de la réutilisation.</div>
+        <div class="podcast-desc">Qui domine le marché ? Que reste-t-il à l'Europe ? Et à quoi ressemblera le secteur en 2040 ?</div>
         <div class="podcast-duration">⏱ ~ 8 min 22</div>
-        <div class="upload-zone" id="pod-upload-2" onclick="document.getElementById('pod-file-2').click()">
-          <div class="upload-zone-text"><strong>Déposer l'épisode</strong> ou cliquer pour parcourir<br><span style="font-size:11px;color:#AAA;">MP3, MP4, WAV acceptés</span></div>
-        </div>
-        <input type="file" id="pod-file-2" accept="audio/*,video/mp4" style="display:none" onchange="handleAudioUpload(this,'pod-audio-2','pod-upload-2')">
         <audio id="pod-audio-2" class="podcast-player" controls style="display:none"></audio>
+        <div class="upload-zone" id="pod-upload-2" onclick="document.getElementById('pod-file-2').click()">
+          <div class="upload-zone-text">
+            <strong>Déposer l'épisode</strong> — stocké sur Supabase<br>
+            <span style="font-size:11px;color:#AAA;">MP3, WAV acceptés · permanent pour tous les visiteurs</span>
+          </div>
+        </div>
+        <input type="file" id="pod-file-2" accept="audio/*" style="display:none" onchange="uploadPodcast(this, 2)">
+        <div class="pod-feedback" id="pod-fb-2"></div>
       </div>
 
     </div>
@@ -2751,13 +2827,172 @@ document.getElementById('search-input').addEventListener('keydown', function(e) 
 });
 
 // ─── INIT ───
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initReveal();
-  if (isLoggedIn) {
-    // restore session
-  }
+  await restoreAll();
 });
-// ─── VIDEO EMBED ───
+
+// ════════════════════════════════════════════════════════
+//   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+//   CONFIGURATION SUPABASE — À remplir ici
+//   Tableau de bord → Settings → API
+//   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+const SUPABASE_URL  = 'VOTRE_SUPABASE_URL';       // ex: https://abcdef.supabase.co
+const SUPABASE_ANON = 'VOTRE_SUPABASE_ANON_KEY';  // ex: eyJhbGci...
+// ════════════════════════════════════════════════════════
+
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── Helpers base de données ──
+async function dbGet(key) {
+  try {
+    const { data } = await _sb.from('reentry_config')
+      .select('value').eq('key', key).maybeSingle();
+    return data ? data.value : null;
+  } catch(e) { return null; }
+}
+
+async function dbSet(key, value) {
+  try {
+    await _sb.from('reentry_config')
+      .upsert({ key, value }, { onConflict: 'key' });
+  } catch(e) {}
+}
+
+// ════════════════════════════════
+// RESTORE AU CHARGEMENT (toutes clés)
+// ════════════════════════════════
+async function restoreAll() {
+  // Récupérer toutes les clés en une seule requête
+  let rows = [];
+  try {
+    const { data } = await _sb.from('reentry_config').select('key, value');
+    rows = data || [];
+  } catch(e) {}
+
+  const get = key => { const r = rows.find(r => r.key === key); return r ? r.value : null; };
+
+  // ── Vidéos ──
+  for (const n of [1, 2]) {
+    const url   = get('video_url_'   + n);
+    const title = get('video_title_' + n);
+    const desc  = get('video_desc_'  + n);
+
+    if (title) {
+      const ti = document.getElementById('vtitle-input-' + n);
+      const td = document.getElementById('vtitle-' + n);
+      if (ti) ti.value = title;
+      if (td) td.textContent = title;
+    }
+    if (desc) {
+      const di = document.getElementById('vdesc-input-' + n);
+      const dd = document.getElementById('vdesc-' + n);
+      if (di) di.value = desc;
+      if (dd) dd.textContent = desc;
+    }
+    if (url) {
+      const input = document.getElementById('vurl-' + n);
+      if (input) input.value = url;
+      previewVideo(n, true); // true = mode silencieux (pas de sauvegarde en boucle)
+    }
+  }
+
+  // ── Podcasts ──
+  for (const n of [1, 2]) {
+    const url = get('podcast_url_' + n);
+    if (url) applyPodcastAudio(n, url);
+  }
+}
+
+// ════════════════════════════════
+// PODCAST — upload vers Supabase Storage
+// ════════════════════════════════
+async function uploadPodcast(input, n) {
+  const file = input.files[0];
+  if (!file) return;
+
+  setPodFeedback(n, '⏳ Upload en cours… patience', '');
+
+  const ext      = file.name.split('.').pop().toLowerCase();
+  const fileName = 'podcast-' + n + '.' + ext;
+
+  // Upload dans le bucket "podcasts" (public)
+  const { error: upErr } = await _sb.storage
+    .from('podcasts')
+    .upload(fileName, file, { upsert: true, contentType: file.type });
+
+  if (upErr) {
+    setPodFeedback(n, '✗ Erreur upload : ' + upErr.message, 'err');
+    return;
+  }
+
+  // URL publique permanente
+  const { data: urlData } = _sb.storage.from('podcasts').getPublicUrl(fileName);
+  const publicUrl = urlData.publicUrl;
+
+  // Sauvegarder l'URL en base
+  await dbSet('podcast_url_' + n, publicUrl);
+
+  // Activer le lecteur audio
+  applyPodcastAudio(n, publicUrl);
+
+  // Mettre à jour les zones de dépôt (accueil + onglet podcasts)
+  const label = `<strong style="color:var(--blue)">✓ ${file.name}</strong><br><span style="font-size:11px;color:#AAA;">${(file.size/1024/1024).toFixed(1)} MB · stocké sur Supabase</span>`;
+  ['pod-upload-' + n, 'home-upload-' + n].forEach(id => {
+    const z = document.getElementById(id);
+    if (z) { z.classList.add('has-file'); z.querySelector('.upload-zone-text').innerHTML = label; }
+  });
+
+  setPodFeedback(n, '✓ Épisode ' + n + ' uploadé — permanent, visible par tous les visiteurs.', 'ok');
+}
+
+function applyPodcastAudio(n, url) {
+  ['pod-audio-' + n, 'home-audio-' + n].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = url; el.style.display = 'block'; }
+  });
+}
+
+function setPodFeedback(n, msg, type) {
+  const fb = document.getElementById('pod-fb-' + n);
+  if (!fb) return;
+  fb.textContent = msg;
+  fb.className = 'pod-feedback' + (type ? ' ' + type : '');
+}
+
+// ════════════════════════════════
+// VIDÉO — sauvegarde Supabase
+// ════════════════════════════════
+const _videoSaveTimers = {};
+function scheduleVideoSave(n) {
+  clearTimeout(_videoSaveTimers[n]);
+  _videoSaveTimers[n] = setTimeout(() => saveVideoState(n), 900);
+}
+
+async function saveVideoState(n) {
+  const url   = (document.getElementById('vurl-'          + n) || {}).value || '';
+  const title = (document.getElementById('vtitle-input-'  + n) || {}).value || '';
+  const desc  = (document.getElementById('vdesc-input-'   + n) || {}).value || '';
+  await Promise.all([
+    dbSet('video_url_'   + n, url),
+    dbSet('video_title_' + n, title),
+    dbSet('video_desc_'  + n, desc),
+  ]);
+}
+
+// Patch inputs title/desc
+document.addEventListener('DOMContentLoaded', () => {
+  [1, 2].forEach(n => {
+    const ti = document.getElementById('vtitle-input-' + n);
+    const di = document.getElementById('vdesc-input-'  + n);
+    if (ti) ti.addEventListener('change', () => saveVideoState(n));
+    if (di) di.addEventListener('change', () => saveVideoState(n));
+  });
+});
+
+// ════════════════════════════════
+// VIDEO EMBED — miniature + iframe
+// ════════════════════════════════
 function extractYouTubeId(url) {
   url = (url || '').trim();
   const patterns = [
@@ -2774,38 +3009,36 @@ function extractYouTubeId(url) {
   return null;
 }
 
-function previewVideo(n) {
+// silent=true quand appelé depuis restoreAll (évite boucle save)
+function previewVideo(n, silent) {
   const input    = document.getElementById('vurl-' + n);
   const fb       = document.getElementById('vfeedback-' + n);
   const thumb    = document.getElementById('vthumb-' + n);
   const thumbImg = document.getElementById('vthumb-img-' + n);
   const emptyPH  = document.getElementById('vempty-' + n);
-  const id       = extractYouTubeId(input.value);
+  const id       = extractYouTubeId(input ? input.value : '');
 
-  if (!input.value.trim()) {
-    fb.textContent = '';
-    fb.className = 'video-feedback';
-    showEmpty(n);
-    return;
+  if (!silent) scheduleVideoSave(n);
+
+  if (!input || !input.value.trim()) {
+    if (fb) { fb.textContent = ''; fb.className = 'video-feedback'; }
+    showEmpty(n); return;
   }
 
   if (id) {
-    // Try maxresdefault first, fallback to hqdefault
-    const src = 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
-    thumbImg.src = src;
-    thumbImg.onerror = function() {
-      this.src = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
-    };
-    thumb.style.display = 'flex';
+    if (thumbImg) {
+      thumbImg.src = 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
+      thumbImg.onerror = function() {
+        this.src = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+        this.onerror = null;
+      };
+    }
+    if (thumb)   { thumb.style.display = 'flex'; thumb.dataset.ytid = id; }
     if (emptyPH) emptyPH.style.display = 'none';
-    // Store id on the thumb for click-to-play
-    thumb.dataset.ytid = id;
-    fb.textContent = '✓ Aperçu chargé — cliquez sur la miniature ou sur Intégrer pour lancer la vidéo';
-    fb.className = 'video-feedback ok';
+    if (fb) { fb.textContent = '✓ Miniature chargée — cliquez dessus ou sur Intégrer'; fb.className = 'video-feedback ok'; }
   } else {
     showEmpty(n);
-    fb.textContent = 'Lien non reconnu. Formats acceptés : youtube.com/watch?v=… ou youtu.be/…';
-    fb.className = 'video-feedback err';
+    if (fb) { fb.textContent = 'Lien non reconnu. Formats : youtube.com/watch?v=… ou youtu.be/…'; fb.className = 'video-feedback err'; }
   }
 }
 
@@ -2819,15 +3052,13 @@ function showEmpty(n) {
 }
 
 function embedVideo(n, autoplay) {
-  const input  = document.getElementById('vurl-' + n);
-  const fb     = document.getElementById('vfeedback-' + n);
-  const iframe = document.getElementById('viframe-' + n);
-  const thumb  = document.getElementById('vthumb-' + n);
-  const emptyPH= document.getElementById('vempty-' + n);
+  const input   = document.getElementById('vurl-' + n);
+  const fb      = document.getElementById('vfeedback-' + n);
+  const iframe  = document.getElementById('viframe-' + n);
+  const thumb   = document.getElementById('vthumb-' + n);
+  const emptyPH = document.getElementById('vempty-' + n);
 
-  // Accept id from thumbnail dataset or from URL input
   const id = (thumb && thumb.dataset.ytid) || extractYouTubeId(input ? input.value : '');
-
   if (!id) {
     if (fb) { fb.textContent = 'Lien invalide. Copiez l\'URL depuis YouTube.'; fb.className = 'video-feedback err'; }
     return;
@@ -2838,7 +3069,7 @@ function embedVideo(n, autoplay) {
   iframe.style.display = 'block';
   if (thumb)   thumb.style.display   = 'none';
   if (emptyPH) emptyPH.style.display = 'none';
-  if (fb) { fb.textContent = '✓ Lecteur chargé — les vidéos non répertoriées fonctionnent normalement.'; fb.className = 'video-feedback ok'; }
+  if (fb) { fb.textContent = '✓ Lecteur chargé.'; fb.className = 'video-feedback ok'; }
 }
 
 </script>
